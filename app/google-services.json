@@ -1,0 +1,55 @@
+{
+  "project_info": {
+    "project_number": "484112472927",
+    "firebase_url": "https://icecreaminventory.firebaseio.com",
+    "project_id": "icecreaminventory",
+    "storage_bucket": "icecreaminventory.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:484112472927:android:f263358641ad2c84",
+        "android_client_info": {
+          "package_name": "com.example.shivang.icecreaminventory"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "484112472927-en03lv7sb8s4vv6o5j28kpib12a9qa75.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.shivang.icecreaminventory",
+            "certificate_hash": "c6e0895b7b5c65ccb033d8e775ada436ac9e0a18"
+          }
+        },
+        {
+          "client_id": "484112472927-2cgpcim1tdbb5sop1kt3cv4vc4kv1t07.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyB5ODJ1EH1zu8mvSJ5tyYbTFYQIrx_u4VE"
+        }
+      ],
+      "services": {
+        "analytics_service": {
+          "status": 1
+        },
+        "appinvite_service": {
+          "status": 2,
+          "other_platform_oauth_client": [
+            {
+              "client_id": "484112472927-2cgpcim1tdbb5sop1kt3cv4vc4kv1t07.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        },
+        "ads_service": {
+          "status": 2
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -12,49 +12,36 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Add Item"
+            android:text="Add Flavour"
             android:layout_marginTop="10dp"
             android:textAppearance="@style/Base.TextAppearance.AppCompat.Headline"
             android:gravity="center"/>
-        <FrameLayout
+
+
+        <ImageView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="center"
-            android:layout_marginTop="10dp">
-            <ImageView
-                android:layout_width="100dp"
-                android:layout_height="100dp"
-                android:layout_gravity="center"
-                android:scaleType="centerCrop"
-                android:id="@+id/ivClick"/>
-            <Button
-                android:layout_width="100dp"
-                android:layout_height="100dp"
-                android:id="@+id/clickItem"
-                android:background="@android:drawable/ic_menu_camera"
-                android:layout_gravity="center"/>
-        </FrameLayout>
-
-
-
+            android:layout_marginTop="10dp"
+            android:src="@mipmap/ic_launcher"
+            android:layout_gravity="center"/>
 
 
         <EditText
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/etItemName"
+            android:id="@+id/etFlName"
             android:gravity="center"
             android:layout_weight="1"
-            android:hint="Enter Item Name"
+            android:hint="Enter Flavour Name"
             android:layout_marginTop="10dp"
             android:textAppearance="@style/Base.TextAppearance.AppCompat.Headline"/>
         <EditText
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/etItemDesc"
+            android:id="@+id/etFlDesc"
             android:gravity="center"
             android:layout_weight="1"
-            android:hint="Enter Item Description"
+            android:hint="Enter Flavour Description"
             android:layout_marginTop="10dp"
             android:textAppearance="@style/Base.TextAppearance.AppCompat.Headline"/>
 
@@ -65,7 +52,7 @@
             android:background="@color/colorPrimary"
             android:textColor="@android:color/background_light"
             android:text="DONE"
-            android:id="@+id/itemDone"
+            android:id="@+id/flDone"
             android:layout_marginTop="10dp"
             android:textAppearance="@style/Base.TextAppearance.AppCompat.Headline"/>
     </LinearLayout>

@@ -2,17 +2,16 @@ package com.example.shivang.icecreaminventory;
 
 import android.content.Context;
 import android.content.Intent;
-import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.shivang.icecreaminventory.Models.Flavour;
 import com.example.shivang.icecreaminventory.Models.Item;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
@@ -23,20 +22,20 @@ import com.google.firebase.database.Query;
 import java.util.List;
 
 /**
- * Created by shivang on 08/01/18.
+ * Created by shivang on 12/01/18.
  */
 
-public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.MyViewHolder> {
-    private List<Item> mItems;
+public class FlavourAdapter extends RecyclerView.Adapter<FlavourAdapter.MyViewHolder> {
+    private List<Flavour> mFlavours;
     private Context mContext;
     private String TAG = "TAG";
     DatabaseReference mDatabase;
 
-    public ItemAdapter(List<Item> items, final Context mContext, DatabaseReference ref) {
-        mItems = items;
+    public FlavourAdapter(List<Flavour> flavours, final Context mContext, DatabaseReference ref,String name) {
+        mFlavours = flavours;
         this.mContext = mContext;
         this.mDatabase=ref;
-        Query myItemsQuery = mDatabase.child("items");
+        Query myItemsQuery = mDatabase.child("items").child(name).child("flavours");
         ChildEventListener childEventListener = new ChildEventListener() {
             @Override
             public void onChildAdded(DataSnapshot dataSnapshot, String previousChildName) {
@@ -97,7 +96,7 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.MyViewHolder> 
 
     }
     @Override
-    public ItemAdapter.MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
+    public FlavourAdapter.MyViewHolder onCreateViewHolder(ViewGroup parent, int viewType) {
         this.parent = parent;
         View itemView = LayoutInflater.from(parent.getContext())
                 .inflate(R.layout.list_item, parent, false);
@@ -105,15 +104,15 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.MyViewHolder> 
     }
 
     @Override
-    public void onBindViewHolder(ItemAdapter.MyViewHolder holder, int position) {
-        Item item = mItems.get(position);
-        holder.tvName.setText(item.getName());
-        holder.tvDesc.setText(item.getDesc());
+    public void onBindViewHolder(FlavourAdapter.MyViewHolder holder, int position) {
+        Flavour flavour = mFlavours.get(position);
+        holder.tvName.setText(flavour.getFlName());
+        holder.tvDesc.setText(flavour.getFlDesc());
     }
 
     @Override
     public int getItemCount() {
-        return mItems.size();
+        return mFlavours.size();
     }
 
 
@@ -131,9 +130,9 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.MyViewHolder> 
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Intent i = new Intent(mContext,ItemSubTypes.class);
-                    i.putExtra("item",mItems.get(getLayoutPosition()).getName());
-                    mContext.startActivity(i);
+//                    Intent i = new Intent(mContext,ItemSubTypes.class);
+//                    i.putExtra("item",mFlavours.get(getLayoutPosition()).getFlName());
+//                    mContext.startActivity(i);
                 }
             });
 
