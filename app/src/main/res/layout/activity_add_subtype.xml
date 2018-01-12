@@ -18,12 +18,25 @@
             android:gravity="center"/>
 
 
-        <ImageView
+        <FrameLayout
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_marginTop="10dp"
-            android:src="@mipmap/ic_launcher"
-            android:layout_gravity="center"/>
+            android:layout_gravity="center"
+            android:layout_marginTop="10dp">
+            <ImageView
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:layout_gravity="center"
+                android:scaleType="centerCrop"
+                android:id="@+id/ivFl"/>
+            <Button
+                android:layout_width="100dp"
+                android:layout_height="100dp"
+                android:id="@+id/flClick"
+                android:background="@android:drawable/ic_menu_camera"
+                android:layout_gravity="center"/>
+        </FrameLayout>
+
 
 
         <EditText

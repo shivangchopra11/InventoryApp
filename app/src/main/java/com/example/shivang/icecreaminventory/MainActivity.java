@@ -1,8 +1,10 @@
 package com.example.shivang.icecreaminventory;
 
 import android.app.Activity;
+import android.content.Context;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.support.design.widget.FloatingActionButton;
@@ -35,7 +37,10 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
+import java.io.ByteArrayOutputStream;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -48,6 +53,10 @@ public class MainActivity extends AppCompatActivity {
     private ValueEventListener itemListener;
     private static final int CAMERA_REQUEST = 1888;
     Bitmap curPic;
+    ImageView curPicView;
+    Button clickItem;
+    Uri curUri;
+    private StorageReference mStorage;
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -56,6 +65,7 @@ public class MainActivity extends AppCompatActivity {
         setSupportActionBar(toolbar);
         mListView = findViewById(R.id.lvItems);
         mDatabase = FirebaseDatabase.getInstance().getReference();
+        mStorage = FirebaseStorage.getInstance().getReference();
         mAdapter = new ItemAdapter(mItemList,MainActivity.this,mDatabase);
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(MainActivity.this);
         mListView.setLayoutManager(mLayoutManager);
@@ -83,43 +93,54 @@ public class MainActivity extends AppCompatActivity {
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
-                new dialogFragment().setCallBack(dialogCallback).show(MainActivity.this.getSupportFragmentManager(),"");
-//                LayoutInflater inflater = LayoutInflater.from(MainActivity.this);
-//                View alertLayout = inflater.inflate(R.layout.activity_add_item, null);
-//                final AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
-//                builder.setView(alertLayout);
-//                final EditText etItemName = alertLayout.findViewById(R.id.etItemName);
-//                final EditText etItemDesc = alertLayout.findViewById(R.id.etItemDesc);
-//                Button btnAddItem = alertLayout.findViewById(R.id.itemDone);
-//                Button clickItem = alertLayout.findViewById(R.id.clickItem);
-//                final AlertDialog dialog = builder.create();
-//                btnAddItem.setOnClickListener(new View.OnClickListener() {
-//                    @Override
-//                    public void onClick(View v) {
-//                        String name = etItemName.getText().toString();
-//                        String desc = etItemDesc.getText().toString();
-//                        //Item cur = new Item(etItem.getText().toString());
-////                        mItemList.add(etItem.getText().toString());
-////                        adapter.notifyDataSetChanged();
-//                        writeNewItem(name,desc);
-////                        mItemList.clear();
-//                        dialog.dismiss();
-//                    }
-//                });
-//                clickItem.setOnClickListener(new View.OnClickListener() {
-//                    @Override
-//                    public void onClick(View v) {
-//                        Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
-//                        startActivityForResult(cameraIntent, CAMERA_REQUEST);
-//                    }
-//                });
-//                dialog.show();
+//                new dialogFragment().setCallBack(dialogCallback).show(MainActivity.this.getSupportFragmentManager(),"");
+
+                LayoutInflater inflater = LayoutInflater.from(MainActivity.this);
+                View alertLayout = inflater.inflate(R.layout.activity_add_item, null);
+                final AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                builder.setView(alertLayout);
+                final EditText etItemName = alertLayout.findViewById(R.id.etItemName);
+                final EditText etItemDesc = alertLayout.findViewById(R.id.etItemDesc);
+                Button btnAddItem = alertLayout.findViewById(R.id.itemDone);
+                curPicView = alertLayout.findViewById(R.id.ivClick);
+                clickItem = alertLayout.findViewById(R.id.clickItem);
+                final AlertDialog dialog = builder.create();
+                btnAddItem.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        String name = etItemName.getText().toString();
+                        String desc = etItemDesc.getText().toString();
+
+                        //Item cur = new Item(etItem.getText().toString());
+//                        mItemList.add(etItem.getText().toString());
+//                        adapter.notifyDataSetChanged();
+                        writeNewItem(name,desc,curUri);
+//                        mItemList.clear();
+                        dialog.dismiss();
+                    }
+                });
+                clickItem.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+                        startActivityForResult(cameraIntent, CAMERA_REQUEST);
+                    }
+                });
+                dialog.show();
             }
         });
 
 //        Log.w(TAG, mItemList.size()+"h");
 
     }
+
+    public Uri getImageUri(Context inContext, Bitmap inImage) {
+            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+            inImage.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
+            String path = MediaStore.Images.Media.insertImage(inContext.getContentResolver(), inImage, "Title", null);
+            return Uri.parse(path);
+    }
+
 
 
 
@@ -143,9 +164,13 @@ public class MainActivity extends AppCompatActivity {
         Log.v(TAG+"1",requestCode+"");
         if (requestCode == CAMERA_REQUEST && resultCode == Activity.RESULT_OK) {
             Bitmap photo = (Bitmap) data.getExtras().get("data");
+//            curUri = (Uri) data.getExtras().get("data");
 //            imageView.setImageBitmap(photo);
+//            curUri = getImageUri(MainActivity.this,photo);
             curPic=photo;
-            Log.v(TAG,curPic.toString());
+            curPicView.setImageBitmap(photo);
+            clickItem.setVisibility(View.GONE);
+//            Log.v(TAG,curUri.toString());
         }
 
     }
@@ -189,12 +214,14 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void writeNewItem(String name, String desc) {
+    private void writeNewItem(String name, String desc,Uri pic) {
 //        DatabaseReference itemRef = mDatabase.child("items");
 //        Item item = new Item(name,desc);
 //        itemRef.push().setValue(item);
         Item item = new Item(name,desc);
         mDatabase.child("items").child(name).setValue(item);
+//        StorageReference filePath = mStorage.child("images").child(name);
+//        filePath.putFile(curUri);
     }
 
     @Override

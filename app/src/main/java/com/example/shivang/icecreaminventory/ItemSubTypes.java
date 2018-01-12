@@ -1,6 +1,8 @@
 package com.example.shivang.icecreaminventory;
 
+import android.app.Activity;
 import android.content.Intent;
+import android.graphics.Bitmap;
 import android.os.Bundle;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
@@ -15,6 +17,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.ImageView;
 
 import com.example.shivang.icecreaminventory.Models.Flavour;
 import com.example.shivang.icecreaminventory.Models.Item;
@@ -35,7 +38,10 @@ public class ItemSubTypes extends AppCompatActivity {
     private String TAG = "TAG";
     private FlavourAdapter mAdapter;
     private ValueEventListener flavourListener;
-    Item curItem;
+    private static final int CAMERA_REQUEST = 1888;
+    Bitmap curPic;
+    ImageView curPicView;
+    Button flClick;
     String mName;
 
     @Override
@@ -75,6 +81,8 @@ public class ItemSubTypes extends AppCompatActivity {
                 Button btnAddItem = alertLayout.findViewById(R.id.flDone);
                 final EditText etFlName = alertLayout.findViewById(R.id.etFlName);
                 final EditText etFlDesc = alertLayout.findViewById(R.id.etFlDesc);
+                flClick = alertLayout.findViewById(R.id.flClick);
+                curPicView = alertLayout.findViewById(R.id.ivFl);
                 final AlertDialog dialog = builder.create();
                 btnAddItem.setOnClickListener(new View.OnClickListener() {
                     @Override
@@ -92,9 +100,32 @@ public class ItemSubTypes extends AppCompatActivity {
                         dialog.dismiss();
                     }
                 });
+                flClick.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+                        startActivityForResult(cameraIntent, CAMERA_REQUEST);
+                    }
+                });
                 dialog.show();
+
             }
         });
+    }
+    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+
+        Log.v(TAG+"1",requestCode+"");
+        if (requestCode == CAMERA_REQUEST && resultCode == Activity.RESULT_OK) {
+            Bitmap photo = (Bitmap) data.getExtras().get("data");
+//            curUri = (Uri) data.getExtras().get("data");
+//            imageView.setImageBitmap(photo);
+//            curUri = getImageUri(MainActivity.this,photo);
+            curPic=photo;
+            curPicView.setImageBitmap(photo);
+            flClick.setVisibility(View.GONE);
+//            Log.v(TAG,curUri.toString());
+        }
+
     }
     private void writeNewItem(String name, String desc) {
         Flavour flavour = new Flavour(name,desc);
