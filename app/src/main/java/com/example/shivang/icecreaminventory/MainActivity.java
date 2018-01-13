@@ -3,11 +3,18 @@ package com.example.shivang.icecreaminventory;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
+import android.os.StrictMode;
 import android.provider.MediaStore;
 import android.support.design.widget.FloatingActionButton;
+import android.support.v4.app.ActivityCompat;
+import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DefaultItemAnimator;
@@ -41,8 +48,15 @@ import com.google.firebase.storage.FirebaseStorage;
 import com.google.firebase.storage.StorageReference;
 
 import java.io.ByteArrayOutputStream;
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
+
+import pub.devrel.easypermissions.EasyPermissions;
 
 public class MainActivity extends AppCompatActivity {
     RecyclerView mListView;
@@ -53,14 +67,26 @@ public class MainActivity extends AppCompatActivity {
     private ValueEventListener itemListener;
     private static final int CAMERA_REQUEST = 1888;
     Bitmap curPic;
+    public static int ctr=0;
     ImageView curPicView;
-    Button clickItem;
-    Uri curUri;
+    private File output=null;
+    private Button clickItem;
+    private Uri curUri;
     private StorageReference mStorage;
+    private String[] galleryPermissions = {android.Manifest.permission.READ_EXTERNAL_STORAGE, android.Manifest.permission.WRITE_EXTERNAL_STORAGE};
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        if(Build.VERSION.SDK_INT>=24){
+            try{
+                Method m = StrictMode.class.getMethod("disableDeathOnFileUriExposure");
+                m.invoke(null);
+            }catch(Exception e){
+                e.printStackTrace();
+            }
+        }
         Toolbar toolbar = (Toolbar) findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         mListView = findViewById(R.id.lvItems);
@@ -76,18 +102,6 @@ public class MainActivity extends AppCompatActivity {
 
 
         mListView.addItemDecoration(new DividerItemDecoration(MainActivity.this,DividerItemDecoration.VERTICAL));
-//
-//        mListView.setItemAnimator(new DefaultItemAnimator());
-
-
-//        mListView.setOnItemClickListener(new AdapterView.OnItemClickListener() {
-//            @Override
-//            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
-//                Intent i = new Intent(MainActivity.this,ItemSubTypes.class);
-//                i.putExtra("item",mItemList.get(position));
-//                startActivity(i);
-//            }
-//        });
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         fab.setOnClickListener(new View.OnClickListener() {
@@ -105,25 +119,34 @@ public class MainActivity extends AppCompatActivity {
                 curPicView = alertLayout.findViewById(R.id.ivClick);
                 clickItem = alertLayout.findViewById(R.id.clickItem);
                 final AlertDialog dialog = builder.create();
+
                 btnAddItem.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
-                        String name = etItemName.getText().toString();
+                        final String curName = etItemName.getText().toString();
                         String desc = etItemDesc.getText().toString();
 
                         //Item cur = new Item(etItem.getText().toString());
 //                        mItemList.add(etItem.getText().toString());
 //                        adapter.notifyDataSetChanged();
-                        writeNewItem(name,desc,curUri);
+                        writeNewItem(curName,desc,curUri);
 //                        mItemList.clear();
                         dialog.dismiss();
                     }
                 });
+
                 clickItem.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
+                        File dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM);
+                        ctr++;
+                        output=new File(dir, ctr+".jpeg");
                         Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+                        cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(output));
+
+
                         startActivityForResult(cameraIntent, CAMERA_REQUEST);
+
                     }
                 });
                 dialog.show();
@@ -134,43 +157,21 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    public Uri getImageUri(Context inContext, Bitmap inImage) {
-            ByteArrayOutputStream bytes = new ByteArrayOutputStream();
-            inImage.compress(Bitmap.CompressFormat.JPEG, 100, bytes);
-            String path = MediaStore.Images.Media.insertImage(inContext.getContentResolver(), inImage, "Title", null);
-            return Uri.parse(path);
-    }
-
-
-
-
-    DialogCallback dialogCallback = new DialogCallback() {
-        @Override
-        public void getResults(int results, ImageView iv) {
-//            Log.v(TAG,CAMERA_REQUEST+"");
-//            Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
-//            Intent cameraIntent = new Intent(MediaStore.ACTION_IMAGE_CAPTURE);
-//            startActivityForResult(cameraIntent, CAMERA_REQUEST);
-
-//            if(results==CAMERA_REQUEST){
-//                iv.setImageBitmap(curPic);
-//            }
-            iv.setImageBitmap(curPic);
-        }
-    };
-
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 
         Log.v(TAG+"1",requestCode+"");
         if (requestCode == CAMERA_REQUEST && resultCode == Activity.RESULT_OK) {
-            Bitmap photo = (Bitmap) data.getExtras().get("data");
-//            curUri = (Uri) data.getExtras().get("data");
-//            imageView.setImageBitmap(photo);
-//            curUri = getImageUri(MainActivity.this,photo);
+            if (!EasyPermissions.hasPermissions(this, galleryPermissions)) {
+                EasyPermissions.requestPermissions(this, "Access for storage",
+                        101, galleryPermissions);
+            }
+            Bitmap photo = BitmapFactory.decodeFile(output.getAbsolutePath());
+//            curUri = data.getData();
             curPic=photo;
+            curUri = Uri.fromFile(output);
             curPicView.setImageBitmap(photo);
             clickItem.setVisibility(View.GONE);
-//            Log.v(TAG,curUri.toString());
+            Log.v(TAG,curUri.toString());
         }
 
     }
@@ -220,8 +221,8 @@ public class MainActivity extends AppCompatActivity {
 //        itemRef.push().setValue(item);
         Item item = new Item(name,desc);
         mDatabase.child("items").child(name).setValue(item);
-//        StorageReference filePath = mStorage.child("images").child(name);
-//        filePath.putFile(curUri);
+        StorageReference filePath = mStorage.child("images").child(name);
+        filePath.putFile(curUri);
     }
 
     @Override
