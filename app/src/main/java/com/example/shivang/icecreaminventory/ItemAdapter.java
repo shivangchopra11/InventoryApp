@@ -31,11 +31,13 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.MyViewHolder> 
     private Context mContext;
     private String TAG = "TAG";
     DatabaseReference mDatabase;
+    private int mCode;
 
-    public ItemAdapter(List<Item> items, final Context mContext, DatabaseReference ref) {
+    public ItemAdapter(List<Item> items, final Context mContext, DatabaseReference ref,int code) {
         mItems = items;
         this.mContext = mContext;
         this.mDatabase=ref;
+        this.mCode=code;
         Query myItemsQuery = mDatabase.child("items");
         ChildEventListener childEventListener = new ChildEventListener() {
             @Override
@@ -133,6 +135,7 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.MyViewHolder> 
                 public void onClick(View v) {
                     Intent i = new Intent(mContext,ItemSubTypes.class);
                     i.putExtra("item",mItems.get(getLayoutPosition()).getName());
+                    i.putExtra("code",mCode);
                     mContext.startActivity(i);
                 }
             });

@@ -8,10 +8,14 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="EMPLOYER"
-        android:id="@+id/btn_boss"/>
+        android:id="@+id/btn_boss"
+        android:background="@drawable/button_initial"
+        android:layout_margin="30dp"/>
     <Button
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="EMPLOYEE"
-        android:id="@+id/btn_staff"/>
+        android:id="@+id/btn_staff"
+        android:background="@drawable/button_initial"
+        android:layout_margin="30dp"/>
 </LinearLayout>

@@ -73,12 +73,19 @@ public class MainActivity extends AppCompatActivity {
     private Button clickItem;
     private Uri curUri;
     private StorageReference mStorage;
+    private int mCode;
     private String[] galleryPermissions = {android.Manifest.permission.READ_EXTERNAL_STORAGE, android.Manifest.permission.WRITE_EXTERNAL_STORAGE};
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+        Intent i = getIntent();
+        mCode = i.getIntExtra("code",0);
+        if (!EasyPermissions.hasPermissions(this, galleryPermissions)) {
+            EasyPermissions.requestPermissions(this, "Access for storage",
+                    101, galleryPermissions);
+        }
         if(Build.VERSION.SDK_INT>=24){
             try{
                 Method m = StrictMode.class.getMethod("disableDeathOnFileUriExposure");
@@ -92,7 +99,7 @@ public class MainActivity extends AppCompatActivity {
         mListView = findViewById(R.id.lvItems);
         mDatabase = FirebaseDatabase.getInstance().getReference();
         mStorage = FirebaseStorage.getInstance().getReference();
-        mAdapter = new ItemAdapter(mItemList,MainActivity.this,mDatabase);
+        mAdapter = new ItemAdapter(mItemList,MainActivity.this,mDatabase,mCode);
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(MainActivity.this);
         mListView.setLayoutManager(mLayoutManager);
 //        recyclerView.addItemDecoration(new DividerItemDecoration(getContext(),DividerItemDecoration.VERTICAL));
@@ -104,6 +111,8 @@ public class MainActivity extends AppCompatActivity {
         mListView.addItemDecoration(new DividerItemDecoration(MainActivity.this,DividerItemDecoration.VERTICAL));
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        if(mCode==1)
+            fab.setVisibility(View.GONE);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -129,7 +138,8 @@ public class MainActivity extends AppCompatActivity {
                         //Item cur = new Item(etItem.getText().toString());
 //                        mItemList.add(etItem.getText().toString());
 //                        adapter.notifyDataSetChanged();
-                        writeNewItem(curName,desc,curUri);
+                        if(!curName.equals(""))
+                            writeNewItem(curName,desc,curUri);
 //                        mItemList.clear();
                         dialog.dismiss();
                     }
@@ -143,8 +153,6 @@ public class MainActivity extends AppCompatActivity {
                         output=new File(dir, ctr+".jpeg");
                         Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
                         cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(output));
-
-
                         startActivityForResult(cameraIntent, CAMERA_REQUEST);
 
                     }
@@ -161,10 +169,7 @@ public class MainActivity extends AppCompatActivity {
 
         Log.v(TAG+"1",requestCode+"");
         if (requestCode == CAMERA_REQUEST && resultCode == Activity.RESULT_OK) {
-            if (!EasyPermissions.hasPermissions(this, galleryPermissions)) {
-                EasyPermissions.requestPermissions(this, "Access for storage",
-                        101, galleryPermissions);
-            }
+
             Bitmap photo = BitmapFactory.decodeFile(output.getAbsolutePath());
 //            curUri = data.getData();
             curPic=photo;
@@ -222,7 +227,8 @@ public class MainActivity extends AppCompatActivity {
         Item item = new Item(name,desc);
         mDatabase.child("items").child(name).setValue(item);
         StorageReference filePath = mStorage.child("images").child(name);
-        filePath.putFile(curUri);
+        if(curUri!=null)
+            filePath.putFile(curUri);
     }
 
     @Override

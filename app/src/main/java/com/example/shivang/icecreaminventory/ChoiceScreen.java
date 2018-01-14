@@ -17,6 +17,16 @@ public class ChoiceScreen extends AppCompatActivity {
             @Override
             public void onClick(View v) {
                 Intent i = new Intent(ChoiceScreen.this,MainActivity.class);
+                i.putExtra("code",0);
+                startActivity(i);
+            }
+        });
+        Button btnStaff = findViewById(R.id.btn_staff);
+        btnStaff.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View v) {
+                Intent i = new Intent(ChoiceScreen.this,MainActivity.class);
+                i.putExtra("code",1);
                 startActivity(i);
             }
         });

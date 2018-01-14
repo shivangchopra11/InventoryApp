@@ -3,7 +3,11 @@ package com.example.shivang.icecreaminventory;
 import android.app.Activity;
 import android.content.Intent;
 import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
@@ -27,7 +31,10 @@ import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
+import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.StorageReference;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -43,6 +50,11 @@ public class ItemSubTypes extends AppCompatActivity {
     ImageView curPicView;
     Button flClick;
     String mName;
+    private File output=null;
+    public static int ctr=0;
+    private Uri curUri;
+    private int mCode;
+    private StorageReference mStorage;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,7 +64,9 @@ public class ItemSubTypes extends AppCompatActivity {
         setSupportActionBar(toolbar);
         Intent i = getIntent();
         mName = i.getStringExtra("item");
+        mCode = i.getIntExtra("code",0);
         mDatabase = FirebaseDatabase.getInstance().getReference();
+        mStorage = FirebaseStorage.getInstance().getReference();
         Log.v(TAG,mName);
         mListView = findViewById(R.id.rvFlavours);
         mDatabase = FirebaseDatabase.getInstance().getReference();
@@ -70,6 +84,8 @@ public class ItemSubTypes extends AppCompatActivity {
 
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
+        if(mCode==1)
+            fab.setVisibility(View.GONE);
         fab.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
@@ -95,7 +111,8 @@ public class ItemSubTypes extends AppCompatActivity {
                         //Item cur = new Item(etItem.getText().toString());
 //                        mItemList.add(etItem.getText().toString());
 //                        adapter.notifyDataSetChanged();
-                        writeNewItem(name,desc);
+                        if(!name.equals(""))
+                            writeNewItem(name,desc);
 //                        mItemList.clear();
                         dialog.dismiss();
                     }
@@ -103,8 +120,13 @@ public class ItemSubTypes extends AppCompatActivity {
                 flClick.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
+                        File dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM);
+                        ctr++;
+                        output=new File(dir, ctr+".jpeg");
                         Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+                        cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(output));
                         startActivityForResult(cameraIntent, CAMERA_REQUEST);
+
                     }
                 });
                 dialog.show();
@@ -116,20 +138,21 @@ public class ItemSubTypes extends AppCompatActivity {
 
         Log.v(TAG+"1",requestCode+"");
         if (requestCode == CAMERA_REQUEST && resultCode == Activity.RESULT_OK) {
-            Bitmap photo = (Bitmap) data.getExtras().get("data");
-//            curUri = (Uri) data.getExtras().get("data");
-//            imageView.setImageBitmap(photo);
-//            curUri = getImageUri(MainActivity.this,photo);
+            Bitmap photo = BitmapFactory.decodeFile(output.getAbsolutePath());
+//            curUri = data.getData();
             curPic=photo;
+            curUri = Uri.fromFile(output);
             curPicView.setImageBitmap(photo);
             flClick.setVisibility(View.GONE);
-//            Log.v(TAG,curUri.toString());
         }
 
     }
     private void writeNewItem(String name, String desc) {
         Flavour flavour = new Flavour(name,desc);
         mDatabase.child("items").child(mName).child("flavours").child(name).setValue(flavour);
+        StorageReference filePath = mStorage.child("flavours").child(name);
+        if(curUri!=null)
+            filePath.putFile(curUri);
     }
 
     @Override

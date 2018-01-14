@@ -2,11 +2,17 @@ package com.example.shivang.icecreaminventory;
 
 import android.content.Context;
 import android.content.Intent;
+import android.net.Uri;
+import android.os.Environment;
+import android.provider.MediaStore;
+import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
+import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -19,6 +25,7 @@ import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.Query;
 
+import java.io.File;
 import java.util.List;
 
 /**
@@ -30,11 +37,13 @@ public class FlavourAdapter extends RecyclerView.Adapter<FlavourAdapter.MyViewHo
     private Context mContext;
     private String TAG = "TAG";
     DatabaseReference mDatabase;
+    String itemName;
 
     public FlavourAdapter(List<Flavour> flavours, final Context mContext, DatabaseReference ref,String name) {
         mFlavours = flavours;
         this.mContext = mContext;
         this.mDatabase=ref;
+        itemName = name;
         Query myItemsQuery = mDatabase.child("items").child(name).child("flavours");
         ChildEventListener childEventListener = new ChildEventListener() {
             @Override
@@ -124,6 +133,7 @@ public class FlavourAdapter extends RecyclerView.Adapter<FlavourAdapter.MyViewHo
         TextView tvDesc;
         public MyViewHolder(View itemView) {
             super(itemView);
+
             tvName = itemView.findViewById(R.id.tvName);
             tvDesc = itemView.findViewById(R.id.tvDesc);
             imgItem = itemView.findViewById(R.id.imgItem);
@@ -133,6 +143,48 @@ public class FlavourAdapter extends RecyclerView.Adapter<FlavourAdapter.MyViewHo
 //                    Intent i = new Intent(mContext,ItemSubTypes.class);
 //                    i.putExtra("item",mFlavours.get(getLayoutPosition()).getFlName());
 //                    mContext.startActivity(i);
+                    final int pos = getLayoutPosition();
+                    final String name = mFlavours.get(pos).getFlName();
+                    LayoutInflater inflater = LayoutInflater.from(mContext);
+                    View alertLayout = inflater.inflate(R.layout.activity_change_qty, null);
+                    final AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+                    builder.setView(alertLayout);
+                    final TextView tvQty = alertLayout.findViewById(R.id.tvQty);
+                    tvQty.setText(mFlavours.get(pos).getFlQty()+"");
+                    Button addQty = alertLayout.findViewById(R.id.addQty);
+                    Button subQty = alertLayout.findViewById(R.id.subQty);
+                    final AlertDialog dialog = builder.create();
+                    Button btnSubQty = alertLayout.findViewById(R.id.btnSubQty);
+                    addQty.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            String qty = tvQty.getText().toString();
+                            int qt = Integer.parseInt(qty);
+                            qt++;
+                            tvQty.setText(qt+"");
+                        }
+                    });
+                    subQty.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            String qty = tvQty.getText().toString();
+                            int qt = Integer.parseInt(qty);
+                            if(qt>0)
+                                qt--;
+                            tvQty.setText(qt+"");
+                        }
+                    });
+                    btnSubQty.setOnClickListener(new View.OnClickListener() {
+                        @Override
+                        public void onClick(View v) {
+                            String qty = tvQty.getText().toString();
+                            int qt = Integer.parseInt(qty);
+                            mDatabase.child("items").child(itemName).child("flavours").child(name).child("flQty").setValue(qt);
+                            dialog.dismiss();
+                        }
+                    });
+                    dialog.show();
+
                 }
             });
 
