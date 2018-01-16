@@ -14,6 +14,7 @@
             android:layout_height="80dp"
             android:id="@+id/imgItem"
             android:gravity="center"
+            android:scaleType="centerCrop"
             android:textColor="@android:color/background_light"
             android:src="@drawable/cherry"/>
         <LinearLayout
@@ -25,12 +26,14 @@
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"
+                android:gravity="center"
                 android:id="@+id/tvName"
                 android:textAppearance="@style/Base.TextAppearance.AppCompat.Headline"/>
             <TextView
                 android:layout_width="match_parent"
                 android:layout_height="0dp"
                 android:layout_weight="1"
+                android:gravity="center"
                 android:id="@+id/tvDesc"
                 android:textAppearance="@style/Base.TextAppearance.AppCompat.Headline"/>
         </LinearLayout>

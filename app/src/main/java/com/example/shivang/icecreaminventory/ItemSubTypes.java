@@ -1,6 +1,7 @@
 package com.example.shivang.icecreaminventory;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -8,6 +9,7 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
@@ -25,6 +27,8 @@ import android.widget.ImageView;
 
 import com.example.shivang.icecreaminventory.Models.Flavour;
 import com.example.shivang.icecreaminventory.Models.Item;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
@@ -32,11 +36,16 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 
 import java.io.File;
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
+
+import id.zelory.compressor.Compressor;
 
 public class ItemSubTypes extends AppCompatActivity {
     RecyclerView mListView;
@@ -51,6 +60,7 @@ public class ItemSubTypes extends AppCompatActivity {
     Button flClick;
     String mName;
     private File output=null;
+    private File output1=null;
     public static int ctr=0;
     private Uri curUri;
     private int mCode;
@@ -70,7 +80,7 @@ public class ItemSubTypes extends AppCompatActivity {
         Log.v(TAG,mName);
         mListView = findViewById(R.id.rvFlavours);
         mDatabase = FirebaseDatabase.getInstance().getReference();
-        mAdapter = new FlavourAdapter(mFlavourList,ItemSubTypes.this,mDatabase,mName);
+        mAdapter = new FlavourAdapter(mFlavourList,ItemSubTypes.this,mDatabase,mName,mStorage);
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(ItemSubTypes.this);
         mListView.setLayoutManager(mLayoutManager);
 //        recyclerView.addItemDecoration(new DividerItemDecoration(getContext(),DividerItemDecoration.VERTICAL));
@@ -138,21 +148,48 @@ public class ItemSubTypes extends AppCompatActivity {
 
         Log.v(TAG+"1",requestCode+"");
         if (requestCode == CAMERA_REQUEST && resultCode == Activity.RESULT_OK) {
-            Bitmap photo = BitmapFactory.decodeFile(output.getAbsolutePath());
+            File dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM);
+//            Bitmap photo = BitmapFactory.decodeFile(output.getAbsolutePath());
 //            curUri = data.getData();
+            output1=new File(dir, ctr+"s.jpeg");
+            try {
+                output1 = new Compressor(this).compressToFile(output);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+            Bitmap photo = BitmapFactory.decodeFile(output1.getAbsolutePath());
             curPic=photo;
-            curUri = Uri.fromFile(output);
+            curUri = Uri.fromFile(output1);
             curPicView.setImageBitmap(photo);
             flClick.setVisibility(View.GONE);
         }
 
     }
-    private void writeNewItem(String name, String desc) {
-        Flavour flavour = new Flavour(name,desc);
-        mDatabase.child("items").child(mName).child("flavours").child(name).setValue(flavour);
-        StorageReference filePath = mStorage.child("flavours").child(name);
-        if(curUri!=null)
-            filePath.putFile(curUri);
+    private void writeNewItem(final String name, final String desc) {
+
+        StorageReference filePath = mStorage.child("flavours").child(mName+"-"+name);
+        final ProgressDialog pd = new ProgressDialog(ItemSubTypes.this);
+        if(curUri!=null) {
+            filePath.putFile(curUri).addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
+                @Override
+                public void onProgress(UploadTask.TaskSnapshot taskSnapshot) {
+                    pd.setTitle("Sending Data");
+                    pd.setMessage("Please wait, data is sending");
+                    pd.setCancelable(false);
+                    pd.setIndeterminate(true);
+                    pd.show();
+                }
+            }).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
+                @Override
+                public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
+                    pd.dismiss();
+                    Flavour flavour = new Flavour(name,desc);
+                    mDatabase.child("items").child(mName).child("flavours").child(name).setValue(flavour);
+                }
+            });
+        }
+
+
     }
 
     @Override

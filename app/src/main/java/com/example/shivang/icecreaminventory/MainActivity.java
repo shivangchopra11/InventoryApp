@@ -1,17 +1,20 @@
 package com.example.shivang.icecreaminventory;
 
 import android.app.Activity;
+import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.StrictMode;
 import android.provider.MediaStore;
+import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
 import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
@@ -37,6 +40,8 @@ import android.widget.Toast;
 
 import com.example.shivang.icecreaminventory.Models.Flavour;
 import com.example.shivang.icecreaminventory.Models.Item;
+import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
@@ -45,7 +50,9 @@ import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FirebaseStorage;
+import com.google.firebase.storage.OnProgressListener;
 import com.google.firebase.storage.StorageReference;
+import com.google.firebase.storage.UploadTask;
 
 import java.io.ByteArrayOutputStream;
 import java.io.File;
@@ -56,6 +63,7 @@ import java.lang.reflect.Method;
 import java.util.ArrayList;
 import java.util.List;
 
+import id.zelory.compressor.Compressor;
 import pub.devrel.easypermissions.EasyPermissions;
 
 public class MainActivity extends AppCompatActivity {
@@ -70,6 +78,7 @@ public class MainActivity extends AppCompatActivity {
     public static int ctr=0;
     ImageView curPicView;
     private File output=null;
+    private File output1=null;
     private Button clickItem;
     private Uri curUri;
     private StorageReference mStorage;
@@ -78,6 +87,7 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
+
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
         Intent i = getIntent();
@@ -99,7 +109,7 @@ public class MainActivity extends AppCompatActivity {
         mListView = findViewById(R.id.lvItems);
         mDatabase = FirebaseDatabase.getInstance().getReference();
         mStorage = FirebaseStorage.getInstance().getReference();
-        mAdapter = new ItemAdapter(mItemList,MainActivity.this,mDatabase,mCode);
+        mAdapter = new ItemAdapter(mItemList,MainActivity.this,mDatabase,mCode,mStorage);
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(MainActivity.this);
         mListView.setLayoutManager(mLayoutManager);
 //        recyclerView.addItemDecoration(new DividerItemDecoration(getContext(),DividerItemDecoration.VERTICAL));
@@ -138,10 +148,15 @@ public class MainActivity extends AppCompatActivity {
                         //Item cur = new Item(etItem.getText().toString());
 //                        mItemList.add(etItem.getText().toString());
 //                        adapter.notifyDataSetChanged();
-                        if(!curName.equals(""))
-                            writeNewItem(curName,desc,curUri);
-//                        mItemList.clear();
+//
+                        if(!curName.equals("")) {
+//                            new AsyncSender(curName,desc,curUri,dialog).execute();
+                              writeNewItem(curName,desc,curUri);
+                        }
                         dialog.dismiss();
+//                            writeNewItem(curName,desc,curUri);
+//                        mItemList.clear();
+
                     }
                 });
 
@@ -153,6 +168,7 @@ public class MainActivity extends AppCompatActivity {
                         output=new File(dir, ctr+".jpeg");
                         Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
                         cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(output));
+//                        dialog.dismiss();
                         startActivityForResult(cameraIntent, CAMERA_REQUEST);
 
                     }
@@ -165,15 +181,28 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+
     protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 
         Log.v(TAG+"1",requestCode+"");
         if (requestCode == CAMERA_REQUEST && resultCode == Activity.RESULT_OK) {
-
-            Bitmap photo = BitmapFactory.decodeFile(output.getAbsolutePath());
+            File dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM);
+            output1=new File(dir, ctr+"s.jpeg");
+            try {
+                output1 = new Compressor(this).compressToFile(output);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
+//            Bitmap photo = BitmapFactory.decodeFile(output1.getAbsolutePath());
+            Bitmap photo = null;
+            try {
+                photo = new Compressor(this).compressToBitmap(output1);
+            } catch (IOException e) {
+                e.printStackTrace();
+            }
 //            curUri = data.getData();
             curPic=photo;
-            curUri = Uri.fromFile(output);
+            curUri = Uri.fromFile(output1);
             curPicView.setImageBitmap(photo);
             clickItem.setVisibility(View.GONE);
             Log.v(TAG,curUri.toString());
@@ -220,16 +249,96 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    private void writeNewItem(String name, String desc,Uri pic) {
+    private void writeNewItem(final String name, final String desc, Uri pic) {
 //        DatabaseReference itemRef = mDatabase.child("items");
 //        Item item = new Item(name,desc);
 //        itemRef.push().setValue(item);
-        Item item = new Item(name,desc);
-        mDatabase.child("items").child(name).setValue(item);
+
+//        mAdapter.notifyDataSetChanged();
+
         StorageReference filePath = mStorage.child("images").child(name);
-        if(curUri!=null)
-            filePath.putFile(curUri);
+        final ProgressDialog pd = new ProgressDialog(MainActivity.this);
+        if(curUri!=null) {
+            filePath.putFile(curUri).addOnProgressListener(new OnProgressListener<UploadTask.TaskSnapshot>() {
+                @Override
+                public void onProgress(UploadTask.TaskSnapshot taskSnapshot) {
+                    pd.setTitle("Sending Data");
+                    pd.setMessage("Please wait, data is sending");
+                    pd.setCancelable(false);
+                    pd.setIndeterminate(true);
+                    pd.show();
+                }
+            }).addOnCompleteListener(new OnCompleteListener<UploadTask.TaskSnapshot>() {
+                @Override
+                public void onComplete(@NonNull Task<UploadTask.TaskSnapshot> task) {
+                    pd.dismiss();
+                    Item item = new Item(name,desc);
+                    mDatabase.child("items").child(name).setValue(item);
+                }
+            });
+        }
+
+
+
     }
+
+//    private final class AsyncSender extends AsyncTask<Void, Void, Void> {
+//
+//        ProgressDialog pd;
+//        String name;
+//        String desc;
+//        Uri pic;
+//        AlertDialog dialog;
+//
+//        AsyncSender(String name, String desc,Uri pic,AlertDialog dialog) {
+//            this.name = name;
+//            this.desc = desc;
+//            this.pic = pic;
+//            this.dialog = dialog;
+//        }
+//
+//        @Override
+//        protected void onPreExecute() {
+////            super.onPreExecute();
+//
+//            pd = new ProgressDialog(MainActivity.this);
+//            pd.setTitle("Sending Data");
+//            pd.setMessage("Please wait, data is sending");
+//            pd.setCancelable(false);
+//            pd.setIndeterminate(true);
+//            pd.show();
+//        }
+//
+//        @Override
+//        protected Void doInBackground(Void... params) {
+//            // You probably have to try/catch this
+//            try {
+//                wait(10000);
+//            } catch (InterruptedException e) {
+//                e.printStackTrace();
+//            }
+//            StorageReference filePath = mStorage.child("images").child(name);
+//            if(curUri!=null) {
+//                filePath.putFile(curUri);
+//            }
+//
+//            return null;
+//        }
+//
+//        @Override
+//        protected void onPostExecute(Void result) {
+//            if (pd != null) {
+//                Log.v(TAG,"Upload complete");
+//                writeNewItem(name,desc,pic);
+//                pd.dismiss();
+//                dialog.dismiss();
+//                mAdapter.notifyDataSetChanged();
+//            }
+////            pd.dismiss();
+////            super.onPostExecute(result);
+//
+//        }
+//    }
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {

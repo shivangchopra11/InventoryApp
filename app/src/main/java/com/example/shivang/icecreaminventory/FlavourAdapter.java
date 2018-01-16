@@ -2,9 +2,12 @@ package com.example.shivang.icecreaminventory;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Environment;
 import android.provider.MediaStore;
+import android.support.annotation.NonNull;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.widget.RecyclerView;
 import android.util.Log;
@@ -19,13 +22,20 @@ import android.widget.Toast;
 
 import com.example.shivang.icecreaminventory.Models.Flavour;
 import com.example.shivang.icecreaminventory.Models.Item;
+import com.google.android.gms.tasks.OnFailureListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.Query;
+import com.google.firebase.storage.FileDownloadTask;
+import com.google.firebase.storage.StorageReference;
 
 import java.io.File;
+import java.io.IOException;
+import java.lang.ref.SoftReference;
+import java.util.HashMap;
 import java.util.List;
 
 /**
@@ -37,12 +47,16 @@ public class FlavourAdapter extends RecyclerView.Adapter<FlavourAdapter.MyViewHo
     private Context mContext;
     private String TAG = "TAG";
     DatabaseReference mDatabase;
+    StorageReference mStorage;
     String itemName;
+    public static final HashMap<String,SoftReference<Bitmap>> flavourCache =
+            new HashMap<String,SoftReference<Bitmap>>();
 
-    public FlavourAdapter(List<Flavour> flavours, final Context mContext, DatabaseReference ref,String name) {
+    public FlavourAdapter(List<Flavour> flavours, final Context mContext, DatabaseReference ref,String name,StorageReference reference) {
         mFlavours = flavours;
         this.mContext = mContext;
         this.mDatabase=ref;
+        this.mStorage = reference;
         itemName = name;
         Query myItemsQuery = mDatabase.child("items").child(name).child("flavours");
         ChildEventListener childEventListener = new ChildEventListener() {
@@ -113,11 +127,44 @@ public class FlavourAdapter extends RecyclerView.Adapter<FlavourAdapter.MyViewHo
     }
 
     @Override
-    public void onBindViewHolder(FlavourAdapter.MyViewHolder holder, int position) {
-        Flavour flavour = mFlavours.get(position);
+    public void onBindViewHolder(final FlavourAdapter.MyViewHolder holder, int position) {
+        final Flavour flavour = mFlavours.get(position);
         holder.tvName.setText(flavour.getFlName());
         holder.tvDesc.setText(flavour.getFlDesc());
+        if(flavourCache.containsKey(itemName+"-"+flavour.getFlName())) {
+            Log.d(TAG,"Caching Done");
+            Bitmap myBitmap = flavourCache.get(itemName+"-"+flavour.getFlName()).get();
+//                Bitmap myBitmap = imageLoader.loadImageSync(finalLocalFile.getAbsolutePath());
+            holder.imgItem.setImageBitmap(myBitmap);
+            return;
+        }
+        StorageReference filePath = mStorage.child("flavours").child(itemName+"-"+flavour.getFlName());
+        File localFile = new File(Environment.getExternalStorageDirectory(),itemName+"-"+flavour.getFlName()+".jpg");
+        try {
+            localFile = File.createTempFile(itemName+"-"+flavour.getFlName(), "jpg");
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        final File finalLocalFile = localFile;
+        filePath.getFile(localFile).addOnSuccessListener(new OnSuccessListener<FileDownloadTask.TaskSnapshot>() {
+            @Override
+            public void onSuccess(FileDownloadTask.TaskSnapshot taskSnapshot) {
+                // Local temp file has been created
+                Bitmap myBitmap = BitmapFactory.decodeFile(finalLocalFile.getAbsolutePath());
+                holder.imgItem.setImageBitmap(myBitmap);
+                SoftReference softRef = new SoftReference(myBitmap);
+                flavourCache.put(itemName+"-"+flavour.getFlName(),softRef);
+            }
+        }).addOnFailureListener(new OnFailureListener() {
+            @Override
+            public void onFailure(@NonNull Exception exception) {
+                // Handle any errors
+            }
+        });
     }
+
+
 
     @Override
     public int getItemCount() {
