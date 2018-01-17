@@ -149,6 +149,7 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.MyViewHolder> 
         return new MyViewHolder(itemView);
     }
 
+
     @Override
     public void onBindViewHolder(final ItemAdapter.MyViewHolder holder, int position) {
         final Item item = mItems.get(position);

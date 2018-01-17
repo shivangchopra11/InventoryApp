@@ -85,6 +85,29 @@ public class ItemSubTypes extends AppCompatActivity {
         mListView.setLayoutManager(mLayoutManager);
 //        recyclerView.addItemDecoration(new DividerItemDecoration(getContext(),DividerItemDecoration.VERTICAL));
 //        recyclerView.setItemAnimator(new DefaultItemAnimator());
+        final ProgressDialog pd = new ProgressDialog(ItemSubTypes.this);
+        pd.setTitle("Recieving Data");
+        pd.setMessage("Please wait, data is being recieved");
+        pd.setCancelable(false);
+        pd.setIndeterminate(true);
+        pd.show();
+        mAdapter.registerAdapterDataObserver(new RecyclerView.AdapterDataObserver() {
+//            @Override
+//            public void onItemRangeInserted(int positionStart, int itemCount) {
+//                super.onItemRangeInserted(positionStart, itemCount);
+//                pd.dismiss();
+//                mAdapter.unregisterAdapterDataObserver(this);
+//            }
+
+            @Override
+            public void onChanged() {
+                super.onChanged();
+                if (pd.isShowing() && pd!=null) {
+                    pd.dismiss();
+                }
+            }
+        });
+
         mListView.setAdapter(mAdapter);
 
 

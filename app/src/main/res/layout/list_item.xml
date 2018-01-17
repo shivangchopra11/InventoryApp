@@ -15,8 +15,7 @@
             android:id="@+id/imgItem"
             android:gravity="center"
             android:scaleType="centerCrop"
-            android:textColor="@android:color/background_light"
-            android:src="@drawable/cherry"/>
+            android:textColor="@android:color/background_light"/>
         <LinearLayout
             android:layout_width="0dp"
             android:layout_height="match_parent"
