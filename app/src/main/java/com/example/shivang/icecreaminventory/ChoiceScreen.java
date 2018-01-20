@@ -16,7 +16,7 @@ public class ChoiceScreen extends AppCompatActivity {
         btnBoss.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent i = new Intent(ChoiceScreen.this,MainActivity.class);
+                Intent i = new Intent(ChoiceScreen.this,BossLogin.class);
                 i.putExtra("code",0);
                 startActivity(i);
             }
@@ -25,7 +25,7 @@ public class ChoiceScreen extends AppCompatActivity {
         btnStaff.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
-                Intent i = new Intent(ChoiceScreen.this,MainActivity.class);
+                Intent i = new Intent(ChoiceScreen.this,EmployeeSelect.class);
                 i.putExtra("code",1);
                 startActivity(i);
             }

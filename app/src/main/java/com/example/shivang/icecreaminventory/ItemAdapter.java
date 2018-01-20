@@ -53,92 +53,17 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.MyViewHolder> 
     DatabaseReference mDatabase;
     StorageReference mStorage;
     private int mCode;
+    private String empName;
     public static final HashMap<String,SoftReference<Bitmap>> imageCache =
             new HashMap<String,SoftReference<Bitmap>>();
-//    File cacheDir;
-    ImageLoader imageLoader = ImageLoader.getInstance();
 
-    public ItemAdapter(List<Item> items, final Context mContext, DatabaseReference ref, int code, StorageReference storage) {
-//        imageCache.clear();
+    public ItemAdapter(List<Item> items, final Context mContext, DatabaseReference ref, int code, StorageReference storage,String empName) {
         mItems = items;
         this.mContext = mContext;
         this.mDatabase=ref;
         this.mCode=code;
         this.mStorage = storage;
-//        cacheDir = StorageUtils.getCacheDirectory(mContext);
-//        ImageLoader imageLoader = ImageLoader.getInstance();
-//        // Create configuration for ImageLoader (all options are optional)
-//        ImageLoaderConfiguration config = new ImageLoaderConfiguration.Builder(mContext)
-//                // You can pass your own memory cache implementation
-//                // You can pass your own disc cache implementation
-//                .discCacheFileNameGenerator(new HashCodeFileNameGenerator())
-//                .build();
-//        // Initialize ImageLoader with created configuration. Do it once.
-//        imageLoader.init(config);
-//        DisplayImageOptions options = new DisplayImageOptions.Builder()
-//                .showStubImage(R.drawable.cherry)//display stub image
-//                .cacheInMemory()
-//                .cacheOnDisc()
-//                .displayer(new RoundedBitmapDisplayer(20))
-//                .build();
-        Query myItemsQuery = mDatabase.child("items");
-        ChildEventListener childEventListener = new ChildEventListener() {
-            @Override
-            public void onChildAdded(DataSnapshot dataSnapshot, String previousChildName) {
-                Log.d(TAG, "onChildAdded:" + dataSnapshot.getKey());
-
-                // A new item has been added, add it to the displayed list
-//                Item item = dataSnapshot.getValue(Item.class);
-//                mItems.add(item);
-//                notifyItemInserted(mItems.size()-1);
-                // ...
-            }
-
-            @Override
-            public void onChildChanged(DataSnapshot dataSnapshot, String previousChildName) {
-                Log.d(TAG, "onChildChanged:" + dataSnapshot.getKey());
-
-                // A comment has changed, use the key to determine if we are displaying this
-                // comment and if so displayed the changed comment.
-//                Item newItem = dataSnapshot.getValue(Item.class);
-//                String itemKey = dataSnapshot.getKey();
-
-
-                // ...
-            }
-
-            @Override
-            public void onChildRemoved(DataSnapshot dataSnapshot) {
-                Log.d(TAG, "onChildRemoved:" + dataSnapshot.getKey());
-
-                // A comment has changed, use the key to determine if we are displaying this
-                // comment and if so remove it.
-                String itemKey = dataSnapshot.getKey();
-
-
-                // ...
-            }
-
-            @Override
-            public void onChildMoved(DataSnapshot dataSnapshot, String previousChildName) {
-                Log.d(TAG, "onChildMoved:" + dataSnapshot.getKey());
-
-                // A item has changed position, use the key to determine if we are
-                // displaying this comment and if so move it.
-//                Comment movedComment = dataSnapshot.getValue(Comment.class);
-//                String commentKey = dataSnapshot.getKey();
-
-                // ...
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                Log.w(TAG, "postComments:onCancelled", databaseError.toException());
-                Toast.makeText(mContext, "Failed to load items.",
-                        Toast.LENGTH_SHORT).show();
-            }
-        };
-        myItemsQuery.addChildEventListener(childEventListener);
+        this.empName = empName;
 
     }
     @Override
@@ -158,7 +83,6 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.MyViewHolder> 
         if(imageCache.containsKey(item.getName())) {
             Log.d(TAG,"Caching Done");
             Bitmap myBitmap = imageCache.get(item.getName()).get();
-//                Bitmap myBitmap = imageLoader.loadImageSync(finalLocalFile.getAbsolutePath());
             holder.imgItem.setImageBitmap(myBitmap);
             return;
         }
@@ -215,6 +139,7 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.MyViewHolder> 
                     Intent i = new Intent(mContext,ItemSubTypes.class);
                     i.putExtra("item",mItems.get(getLayoutPosition()).getName());
                     i.putExtra("code",mCode);
+                    i.putExtra("empName",empName);
                     mContext.startActivity(i);
                 }
             });

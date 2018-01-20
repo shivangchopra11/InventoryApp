@@ -38,9 +38,11 @@ import android.widget.ImageView;
 import android.widget.ListView;
 import android.widget.Toast;
 
+import com.example.shivang.icecreaminventory.Models.Employee;
 import com.example.shivang.icecreaminventory.Models.Flavour;
 import com.example.shivang.icecreaminventory.Models.Item;
 import com.google.android.gms.tasks.OnCompleteListener;
+import com.google.android.gms.tasks.OnSuccessListener;
 import com.google.android.gms.tasks.Task;
 import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
@@ -83,6 +85,7 @@ public class MainActivity extends AppCompatActivity {
     private Uri curUri;
     private StorageReference mStorage;
     private int mCode;
+    private String mEmpName="";
     private String[] galleryPermissions = {android.Manifest.permission.READ_EXTERNAL_STORAGE, android.Manifest.permission.WRITE_EXTERNAL_STORAGE};
 
     @Override
@@ -92,6 +95,10 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         Intent i = getIntent();
         mCode = i.getIntExtra("code",0);
+        if(mCode==1) {
+            mEmpName = i.getStringExtra("empName");
+            Log.v("EMP",mEmpName);
+        }
         if (!EasyPermissions.hasPermissions(this, galleryPermissions)) {
             EasyPermissions.requestPermissions(this, "Access for storage",
                     101, galleryPermissions);
@@ -109,7 +116,7 @@ public class MainActivity extends AppCompatActivity {
         mListView = findViewById(R.id.lvItems);
         mDatabase = FirebaseDatabase.getInstance().getReference();
         mStorage = FirebaseStorage.getInstance().getReference();
-        mAdapter = new ItemAdapter(mItemList,MainActivity.this,mDatabase,mCode,mStorage);
+        mAdapter = new ItemAdapter(mItemList,MainActivity.this,mDatabase,mCode,mStorage,mEmpName);
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(MainActivity.this);
         mListView.setLayoutManager(mLayoutManager);
 //        recyclerView.addItemDecoration(new DividerItemDecoration(getContext(),DividerItemDecoration.VERTICAL));
@@ -232,16 +239,6 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
-    @Override
-    protected void onStop() {
-        super.onStop();
-//        if (itemListener != null) {
-//            itemListener.removeEventListener(itemListener);
-//        }
-//
-//        // Clean up comments listener
-//        mAdapter.cleanupListener();
-    }
 
     @Override
     protected void onStart() {
@@ -367,7 +364,10 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
-        getMenuInflater().inflate(R.menu.menu_main, menu);
+        if(mCode==0) {
+            getMenuInflater().inflate(R.menu.menu_main, menu);
+        }
+
         return true;
     }
 
@@ -379,8 +379,42 @@ public class MainActivity extends AppCompatActivity {
         int id = item.getItemId();
 
         //noinspection SimplifiableIfStatement
-        if (id == R.id.action_settings) {
-            return true;
+        if (id == R.id.addEmployee) {
+            if(mCode==0) {
+                LayoutInflater inflater = LayoutInflater.from(MainActivity.this);
+                View alertLayout = inflater.inflate(R.layout.activity_add_user, null);
+                final AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
+                builder.setView(alertLayout);
+                final EditText etEmpName = alertLayout.findViewById(R.id.etEmpName);
+                Button btnAddEmp = alertLayout.findViewById(R.id.empDone);
+                final AlertDialog dialog = builder.create();
+                btnAddEmp.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        String empName = etEmpName.getText().toString();
+                        if(!empName.equals("")) {
+                            final ProgressDialog pd = new ProgressDialog(MainActivity.this);
+                            Employee employee = new Employee(empName,0);
+                            mDatabase.child("employees").child(empName).setValue(employee).addOnSuccessListener(new OnSuccessListener<Void>() {
+                                @Override
+                                public void onSuccess(Void aVoid) {
+                                    dialog.dismiss();
+                                }
+                            });
+
+                        }
+                        dialog.dismiss();
+                    }
+                });
+                dialog.show();
+            }
+
+        }
+        else if(id == R.id.showEmps) {
+            if(mCode==0) {
+                Intent i = new Intent(MainActivity.this,EmployeeSelect.class);
+                startActivity(i);
+            }
         }
 
         return super.onOptionsItemSelected(item);

@@ -59,6 +59,7 @@ public class ItemSubTypes extends AppCompatActivity {
     ImageView curPicView;
     Button flClick;
     String mName;
+    String empName;
     private File output=null;
     private File output1=null;
     public static int ctr=0;
@@ -75,12 +76,14 @@ public class ItemSubTypes extends AppCompatActivity {
         Intent i = getIntent();
         mName = i.getStringExtra("item");
         mCode = i.getIntExtra("code",0);
+        empName = i.getStringExtra("empName");
         mDatabase = FirebaseDatabase.getInstance().getReference();
         mStorage = FirebaseStorage.getInstance().getReference();
         Log.v(TAG,mName);
         mListView = findViewById(R.id.rvFlavours);
         mDatabase = FirebaseDatabase.getInstance().getReference();
-        mAdapter = new FlavourAdapter(mFlavourList,ItemSubTypes.this,mDatabase,mName,mStorage);
+        Log.v("EMP",empName);
+        mAdapter = new FlavourAdapter(mFlavourList,ItemSubTypes.this,mDatabase,mName,mStorage,empName);
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(ItemSubTypes.this);
         mListView.setLayoutManager(mLayoutManager);
 //        recyclerView.addItemDecoration(new DividerItemDecoration(getContext(),DividerItemDecoration.VERTICAL));

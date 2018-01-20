@@ -3,8 +3,14 @@
     xmlns:tools="http://schemas.android.com/tools"
     tools:context="com.example.shivang.icecreaminventory.MainActivity">
     <item
-        android:id="@+id/action_settings"
+        android:id="@+id/addEmployee"
         android:orderInCategory="100"
-        android:title="@string/action_settings"
+        android:title="Add Employee"
+        app:showAsAction="always"
+        android:icon="@android:drawable/ic_input_add"/>
+    <item
+        android:id="@+id/showEmps"
+        android:orderInCategory="100"
+        android:title="Show Employees"
         app:showAsAction="never" />
 </menu>

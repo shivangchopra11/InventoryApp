@@ -20,6 +20,7 @@ import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import com.example.shivang.icecreaminventory.Models.Employee;
 import com.example.shivang.icecreaminventory.Models.Flavour;
 import com.example.shivang.icecreaminventory.Models.Item;
 import com.google.android.gms.tasks.OnFailureListener;
@@ -29,6 +30,7 @@ import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
 import com.google.firebase.database.Query;
+import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FileDownloadTask;
 import com.google.firebase.storage.StorageReference;
 
@@ -46,76 +48,22 @@ public class FlavourAdapter extends RecyclerView.Adapter<FlavourAdapter.MyViewHo
     private List<Flavour> mFlavours;
     private Context mContext;
     private String TAG = "TAG";
-    DatabaseReference mDatabase;
-    StorageReference mStorage;
-    String itemName;
+    private DatabaseReference mDatabase;
+    private StorageReference mStorage;
+    private String itemName;
+    private String empName;
     public static final HashMap<String,SoftReference<Bitmap>> flavourCache =
             new HashMap<String,SoftReference<Bitmap>>();
 
-    public FlavourAdapter(List<Flavour> flavours, final Context mContext, DatabaseReference ref,String name,StorageReference reference) {
+    public FlavourAdapter(List<Flavour> flavours, final Context mContext, DatabaseReference ref,String name,StorageReference reference,String empName) {
         mFlavours = flavours;
         this.mContext = mContext;
         this.mDatabase=ref;
         this.mStorage = reference;
         itemName = name;
-        Query myItemsQuery = mDatabase.child("items").child(name).child("flavours");
-        ChildEventListener childEventListener = new ChildEventListener() {
-            @Override
-            public void onChildAdded(DataSnapshot dataSnapshot, String previousChildName) {
-                Log.d(TAG, "onChildAdded:" + dataSnapshot.getKey());
-
-                // A new item has been added, add it to the displayed list
-//                Item item = dataSnapshot.getValue(Item.class);
-//                mItems.add(item);
-//                notifyItemInserted(mItems.size()-1);
-                // ...
-            }
-
-            @Override
-            public void onChildChanged(DataSnapshot dataSnapshot, String previousChildName) {
-                Log.d(TAG, "onChildChanged:" + dataSnapshot.getKey());
-
-                // A comment has changed, use the key to determine if we are displaying this
-                // comment and if so displayed the changed comment.
-//                Item newItem = dataSnapshot.getValue(Item.class);
-//                String itemKey = dataSnapshot.getKey();
+        this.empName = empName;
 
 
-                // ...
-            }
-
-            @Override
-            public void onChildRemoved(DataSnapshot dataSnapshot) {
-                Log.d(TAG, "onChildRemoved:" + dataSnapshot.getKey());
-
-                // A comment has changed, use the key to determine if we are displaying this
-                // comment and if so remove it.
-                String itemKey = dataSnapshot.getKey();
-
-
-                // ...
-            }
-
-            @Override
-            public void onChildMoved(DataSnapshot dataSnapshot, String previousChildName) {
-                Log.d(TAG, "onChildMoved:" + dataSnapshot.getKey());
-
-                // A item has changed position, use the key to determine if we are
-                // displaying this comment and if so move it.
-//                Comment movedComment = dataSnapshot.getValue(Comment.class);
-//                String commentKey = dataSnapshot.getKey();
-
-                // ...
-            }
-
-            @Override
-            public void onCancelled(DatabaseError databaseError) {
-                Log.w(TAG, "postComments:onCancelled", databaseError.toException());
-                Toast.makeText(mContext, "Failed to load items.",
-                        Toast.LENGTH_SHORT).show();
-            }
-        };
-        myItemsQuery.addChildEventListener(childEventListener);
 
     }
     @Override
@@ -178,12 +126,31 @@ public class FlavourAdapter extends RecyclerView.Adapter<FlavourAdapter.MyViewHo
         TextView tvName;
         ImageView imgItem;
         TextView tvDesc;
+        int ctr = 0;
+        int curctr=0;
         public MyViewHolder(View itemView) {
             super(itemView);
-
+            Log.v("EMP",empName);
             tvName = itemView.findViewById(R.id.tvName);
             tvDesc = itemView.findViewById(R.id.tvDesc);
             imgItem = itemView.findViewById(R.id.imgItem);
+            Query myEmpQuery = mDatabase.child("employees").child(empName).child("qty");
+
+            myEmpQuery.addValueEventListener(new ValueEventListener() {
+                @Override
+                public void onDataChange(DataSnapshot dataSnapshot) {
+                    if(dataSnapshot.exists())
+                        ctr = dataSnapshot.getValue(Integer.class);
+                    else
+                        ctr = 0;
+                }
+
+                @Override
+                public void onCancelled(DatabaseError databaseError) {
+                    Log.w(TAG, "loadItem:onCancelled", databaseError.toException());
+                }
+            });
+
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -192,6 +159,23 @@ public class FlavourAdapter extends RecyclerView.Adapter<FlavourAdapter.MyViewHo
 //                    mContext.startActivity(i);
                     final int pos = getLayoutPosition();
                     final String name = mFlavours.get(pos).getFlName();
+                    if(!empName.equals("")) {
+                        Query myEmpQuery1 = mDatabase.child("employees").child(empName).child("items").child(itemName).child(name).child("flQty");
+                        myEmpQuery1.addValueEventListener(new ValueEventListener() {
+                            @Override
+                            public void onDataChange(DataSnapshot dataSnapshot) {
+                                if(dataSnapshot.exists())
+                                    curctr = dataSnapshot.getValue(Integer.class);
+                                else
+                                    curctr=0;
+                            }
+
+                            @Override
+                            public void onCancelled(DatabaseError databaseError) {
+                                Log.w(TAG, "loadItem:onCancelled", databaseError.toException());
+                            }
+                        });
+                    }
                     LayoutInflater inflater = LayoutInflater.from(mContext);
                     View alertLayout = inflater.inflate(R.layout.activity_change_qty, null);
                     final AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
@@ -202,6 +186,7 @@ public class FlavourAdapter extends RecyclerView.Adapter<FlavourAdapter.MyViewHo
                     Button subQty = alertLayout.findViewById(R.id.subQty);
                     final AlertDialog dialog = builder.create();
                     Button btnSubQty = alertLayout.findViewById(R.id.btnSubQty);
+
                     addQty.setOnClickListener(new View.OnClickListener() {
                         @Override
                         public void onClick(View v) {
@@ -209,6 +194,8 @@ public class FlavourAdapter extends RecyclerView.Adapter<FlavourAdapter.MyViewHo
                             int qt = Integer.parseInt(qty);
                             qt++;
                             tvQty.setText(qt+"");
+                            ctr++;
+                            curctr++;
                         }
                     });
                     subQty.setOnClickListener(new View.OnClickListener() {
@@ -219,6 +206,8 @@ public class FlavourAdapter extends RecyclerView.Adapter<FlavourAdapter.MyViewHo
                             if(qt>0)
                                 qt--;
                             tvQty.setText(qt+"");
+                            ctr--;
+                            curctr--;
                         }
                     });
                     btnSubQty.setOnClickListener(new View.OnClickListener() {
@@ -227,6 +216,10 @@ public class FlavourAdapter extends RecyclerView.Adapter<FlavourAdapter.MyViewHo
                             String qty = tvQty.getText().toString();
                             int qt = Integer.parseInt(qty);
                             mDatabase.child("items").child(itemName).child("flavours").child(name).child("flQty").setValue(qt);
+                            if(!empName.equals("")) {
+                                mDatabase.child("employees").child(empName).child("qty").setValue(ctr);
+                                mDatabase.child("employees").child(empName).child("items").child(itemName).child(name).child("flQty").setValue(curctr);
+                            }
                             dialog.dismiss();
                         }
                     });
