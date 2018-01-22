@@ -10,7 +10,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:layout_centerInParent="true"
-        app:duration="1000"
+        app:duration="200"
         app:repeat_mode="reverse"
         android:layout_gravity="center">
 
