@@ -63,7 +63,7 @@ public class EmployeeSelect extends AppCompatActivity {
             }
         });
         mListView.setAdapter(mAdapter);
-        mListView.addItemDecoration(new DividerItemDecoration(EmployeeSelect.this,DividerItemDecoration.VERTICAL));
+//        mListView.addItemDecoration(new DividerItemDecoration(EmployeeSelect.this,DividerItemDecoration.VERTICAL));
 
     }
 

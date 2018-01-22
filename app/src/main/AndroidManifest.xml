@@ -23,19 +23,9 @@
             android:name=".MainActivity"
             android:label="@string/app_name"
             android:theme="@style/AppTheme.NoActionBar">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
-
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
-
 
         </activity>
-        <activity android:name=".ChoiceScreen">
-
-
-
-        </activity>
+        <activity android:name=".ChoiceScreen"></activity>
         <activity
             android:name=".ItemSubTypes"
             android:label="@string/title_activity_item_sub_types"
@@ -50,10 +40,18 @@
             android:enabled="true"
             android:exported="true">
             <intent-filter>
-                <action android:name="someIntent"></action>
+                <action android:name="someIntent" />
             </intent-filter>
-
         </receiver>
+
+        <activity android:name=".SplashScreen">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
+
     </application>
 
 </manifest>
