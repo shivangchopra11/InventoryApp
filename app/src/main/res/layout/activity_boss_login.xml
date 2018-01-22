@@ -4,28 +4,51 @@
     android:layout_height="match_parent"
     android:gravity="center"
     android:orientation="vertical"
+    android:weightSum="15"
     tools:context="com.example.shivang.icecreaminventory.BossLogin">
 
-    <EditText
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:hint="Enter E-Mail"
-        android:ems="15"
-        android:id="@+id/etEmail"/>
-    <EditText
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:hint="Enter Password"
-        android:ems="15"
-        android:id="@+id/etPassword"/>
-    <Button
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:text="LOGIN"
-        android:id="@+id/btnLogin"
-        android:background="@drawable/button_initial"/>
-
-
-
-
+        <ImageView
+            android:layout_width="match_parent"
+            android:layout_height="0dp"
+            android:layout_weight="9"
+            android:layout_gravity="center"
+            android:src="@drawable/icon"
+            android:padding="30dp"/>
+        <EditText
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:hint="Enter E-Mail"
+            android:ems="20"
+            android:id="@+id/etEmail"
+            android:maxLines="1"
+            android:layout_weight="2"
+            android:textAppearance="@style/Base.TextAppearance.AppCompat.Subhead"
+            android:padding="10dp"
+            android:layout_marginBottom="10dp"
+            android:background="@drawable/login_box"/>
+        <EditText
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:hint="Enter Password"
+            android:layout_weight="2"
+            android:ems="20"
+            android:maxLines="1"
+            android:textAppearance="@style/Base.TextAppearance.AppCompat.Subhead"
+            android:id="@+id/etPassword"
+            android:padding="10dp"
+            android:layout_marginBottom="5dp"
+            android:background="@drawable/login_box"/>
+        <Button
+            android:layout_width="wrap_content"
+            android:layout_height="0dp"
+            android:text="LOGIN"
+            android:ems="20"
+            android:layout_weight="2"
+            android:id="@+id/btnLogin"
+            android:textAppearance="@style/Base.TextAppearance.AppCompat.Subhead"
+            android:textColor="@android:color/background_light"
+            android:background="@drawable/button_initial"
+            android:layout_margin="5dp"
+            android:padding="10dp"
+            android:layout_marginBottom="5dp"/>
 </LinearLayout>

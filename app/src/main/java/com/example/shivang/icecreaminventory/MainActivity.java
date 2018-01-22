@@ -1,7 +1,10 @@
 package com.example.shivang.icecreaminventory;
 
 import android.app.Activity;
+import android.app.AlarmManager;
+import android.app.PendingIntent;
 import android.app.ProgressDialog;
+import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.pm.PackageManager;
@@ -13,6 +16,7 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.StrictMode;
+import android.os.SystemClock;
 import android.provider.MediaStore;
 import android.support.annotation.NonNull;
 import android.support.design.widget.FloatingActionButton;
@@ -20,11 +24,14 @@ import android.support.v4.app.ActivityCompat;
 import android.support.v4.content.ContextCompat;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
+import android.support.v7.widget.CardView;
 import android.support.v7.widget.DefaultItemAnimator;
 import android.support.v7.widget.DividerItemDecoration;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -63,6 +70,7 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.List;
 
 import id.zelory.compressor.Compressor;
@@ -93,6 +101,23 @@ public class MainActivity extends AppCompatActivity {
 
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
+
+
+
+        Intent intent = new Intent("someIntent");
+        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 1111, intent, 0);
+        AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+//        Calendar calendar = Calendar.getInstance();
+//        calendar.setTimeInMillis(System.currentTimeMillis());
+//        calendar.set(Calendar.HOUR_OF_DAY, 12);
+//        calendar.set(Calendar.MINUTE,5);
+//        alarmManager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME, SystemClock.elapsedRealtime()+6*1000,
+//                60*1000, pendingIntent);
+
+            alarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + (10*1000), pendingIntent);
+
+
+
         Intent i = getIntent();
         mCode = i.getIntExtra("code",0);
         if(mCode==1) {
@@ -117,8 +142,15 @@ public class MainActivity extends AppCompatActivity {
         mDatabase = FirebaseDatabase.getInstance().getReference();
         mStorage = FirebaseStorage.getInstance().getReference();
         mAdapter = new ItemAdapter(mItemList,MainActivity.this,mDatabase,mCode,mStorage,mEmpName);
-        RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(MainActivity.this);
+        DisplayMetrics displayMetrics = this.getResources().getDisplayMetrics();
+        float dpHeight = displayMetrics.heightPixels / displayMetrics.density;
+        float dpWidth = displayMetrics.widthPixels / displayMetrics.density;
+        int num = (int)dpWidth/150;
+        int mar = (int) (dpWidth-num);
+        int marfin = mar/(num*2);
+        RecyclerView.LayoutManager mLayoutManager = new GridLayoutManager(this,num,LinearLayoutManager.VERTICAL,false);
         mListView.setLayoutManager(mLayoutManager);
+
 //        recyclerView.addItemDecoration(new DividerItemDecoration(getContext(),DividerItemDecoration.VERTICAL));
 //        recyclerView.setItemAnimator(new DefaultItemAnimator());
         final ProgressDialog pd = new ProgressDialog(MainActivity.this);
@@ -147,7 +179,7 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-        mListView.addItemDecoration(new DividerItemDecoration(MainActivity.this,DividerItemDecoration.VERTICAL));
+//        mListView.addItemDecoration(new DividerItemDecoration(MainActivity.this,DividerItemDecoration.VERTICAL));
 
         FloatingActionButton fab = (FloatingActionButton) findViewById(R.id.fab);
         if(mCode==1)
@@ -302,65 +334,6 @@ public class MainActivity extends AppCompatActivity {
     }
 
 
-
-//    private final class AsyncSender extends AsyncTask<Void, Void, Void> {
-//
-//        ProgressDialog pd;
-//        String name;
-//        String desc;
-//        Uri pic;
-//        AlertDialog dialog;
-//
-//        AsyncSender(String name, String desc,Uri pic,AlertDialog dialog) {
-//            this.name = name;
-//            this.desc = desc;
-//            this.pic = pic;
-//            this.dialog = dialog;
-//        }
-//
-//        @Override
-//        protected void onPreExecute() {
-////            super.onPreExecute();
-//
-//            pd = new ProgressDialog(MainActivity.this);
-//            pd.setTitle("Sending Data");
-//            pd.setMessage("Please wait, data is sending");
-//            pd.setCancelable(false);
-//            pd.setIndeterminate(true);
-//            pd.show();
-//        }
-//
-//        @Override
-//        protected Void doInBackground(Void... params) {
-//            // You probably have to try/catch this
-//            try {
-//                wait(10000);
-//            } catch (InterruptedException e) {
-//                e.printStackTrace();
-//            }
-//            StorageReference filePath = mStorage.child("images").child(name);
-//            if(curUri!=null) {
-//                filePath.putFile(curUri);
-//            }
-//
-//            return null;
-//        }
-//
-//        @Override
-//        protected void onPostExecute(Void result) {
-//            if (pd != null) {
-//                Log.v(TAG,"Upload complete");
-//                writeNewItem(name,desc,pic);
-//                pd.dismiss();
-//                dialog.dismiss();
-//                mAdapter.notifyDataSetChanged();
-//            }
-////            pd.dismiss();
-////            super.onPostExecute(result);
-//
-//        }
-//    }
-
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
         // Inflate the menu; this adds items to the action bar if it is present.
@@ -413,10 +386,13 @@ public class MainActivity extends AppCompatActivity {
         else if(id == R.id.showEmps) {
             if(mCode==0) {
                 Intent i = new Intent(MainActivity.this,EmployeeSelect.class);
+                i.putExtra("code",0);
                 startActivity(i);
             }
         }
 
         return super.onOptionsItemSelected(item);
     }
+
+
 }

@@ -7,7 +7,7 @@
         android:orderInCategory="100"
         android:title="Add Employee"
         app:showAsAction="always"
-        android:icon="@android:drawable/ic_input_add"/>
+        android:icon="@drawable/ic_add_white_48dp"/>
     <item
         android:id="@+id/showEmps"
         android:orderInCategory="100"

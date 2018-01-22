@@ -15,9 +15,11 @@ import android.support.design.widget.Snackbar;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
 import android.support.v7.widget.DividerItemDecoration;
+import android.support.v7.widget.GridLayoutManager;
 import android.support.v7.widget.LinearLayoutManager;
 import android.support.v7.widget.RecyclerView;
 import android.support.v7.widget.Toolbar;
+import android.util.DisplayMetrics;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -84,7 +86,13 @@ public class ItemSubTypes extends AppCompatActivity {
         mDatabase = FirebaseDatabase.getInstance().getReference();
         Log.v("EMP",empName);
         mAdapter = new FlavourAdapter(mFlavourList,ItemSubTypes.this,mDatabase,mName,mStorage,empName);
-        RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(ItemSubTypes.this);
+        DisplayMetrics displayMetrics = this.getResources().getDisplayMetrics();
+        float dpHeight = displayMetrics.heightPixels / displayMetrics.density;
+        float dpWidth = displayMetrics.widthPixels / displayMetrics.density;
+        int num = (int)dpWidth/150;
+        int mar = (int) (dpWidth-num);
+        int marfin = mar/(num*2);
+        RecyclerView.LayoutManager mLayoutManager = new GridLayoutManager(this,num,LinearLayoutManager.VERTICAL,false);
         mListView.setLayoutManager(mLayoutManager);
 //        recyclerView.addItemDecoration(new DividerItemDecoration(getContext(),DividerItemDecoration.VERTICAL));
 //        recyclerView.setItemAnimator(new DefaultItemAnimator());
@@ -115,7 +123,7 @@ public class ItemSubTypes extends AppCompatActivity {
 
 
 
-        mListView.addItemDecoration(new DividerItemDecoration(ItemSubTypes.this,DividerItemDecoration.VERTICAL));
+//        mListView.addItemDecoration(new DividerItemDecoration(ItemSubTypes.this,DividerItemDecoration.VERTICAL));
 
 
 

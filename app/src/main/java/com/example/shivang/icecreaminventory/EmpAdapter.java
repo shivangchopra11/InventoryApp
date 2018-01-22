@@ -23,12 +23,14 @@ class EmpAdapter extends RecyclerView.Adapter<EmpAdapter.MyViewHolder> {
     private List<Employee> mEmps;
     private Context mContext;
     private String TAG = "TAG";
+    private int mCode;
 
     static ViewGroup parent;
 
-    public EmpAdapter(List<Employee> mEmps, Context mContext) {
+    public EmpAdapter(List<Employee> mEmps, Context mContext,int code) {
         this.mEmps = mEmps;
         this.mContext = mContext;
+        this.mCode = code;
 
     }
 
@@ -64,10 +66,12 @@ class EmpAdapter extends RecyclerView.Adapter<EmpAdapter.MyViewHolder> {
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
-                    Intent i = new Intent(mContext,MainActivity.class);
-                    i.putExtra("empName",mEmps.get(getLayoutPosition()).getName());
-                    i.putExtra("code",1);
-                    mContext.startActivity(i);
+                        Intent i = new Intent(mContext,MainActivity.class);
+                        i.putExtra("empName",mEmps.get(getLayoutPosition()).getName());
+                        i.putExtra("code",1);
+                        mContext.startActivity(i);
+
+
                 }
             });
         }

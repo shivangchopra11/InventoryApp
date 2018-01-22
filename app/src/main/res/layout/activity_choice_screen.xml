@@ -3,19 +3,33 @@
     android:layout_height="match_parent"
     android:orientation="vertical"
     android:gravity="center"
+    android:weightSum="8"
     xmlns:android="http://schemas.android.com/apk/res/android">
+    <ImageView
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="5"
+        android:layout_gravity="center"
+        android:src="@drawable/icon"
+        android:padding="30dp"/>
     <Button
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         android:text="EMPLOYER"
         android:id="@+id/btn_boss"
+        android:layout_weight="1"
+        android:textAppearance="@style/Base.TextAppearance.AppCompat.Subhead"
+        android:textColor="@android:color/background_light"
         android:background="@drawable/button_initial"
-        android:layout_margin="30dp"/>
+        android:layout_margin="5dp"/>
     <Button
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="0dp"
         android:text="EMPLOYEE"
         android:id="@+id/btn_staff"
+        android:layout_weight="1"
+        android:textColor="@android:color/background_light"
+        android:textAppearance="@style/Base.TextAppearance.AppCompat.Subhead"
         android:background="@drawable/button_initial"
-        android:layout_margin="30dp"/>
+        android:layout_margin="5dp"/>
 </LinearLayout>

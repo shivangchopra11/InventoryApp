@@ -28,14 +28,16 @@ public class EmployeeSelect extends AppCompatActivity {
     private String TAG = "TAG";
     private EmpAdapter mAdapter;
     private ValueEventListener empListener;
+    private int mCode;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_employee_select);
         mListView = findViewById(R.id.lvEmployees);
+        mCode = getIntent().getIntExtra("code",0);
         mDatabase = FirebaseDatabase.getInstance().getReference();
-        mAdapter = new EmpAdapter(mEmpList,EmployeeSelect.this);
+        mAdapter = new EmpAdapter(mEmpList,EmployeeSelect.this,mCode);
         RecyclerView.LayoutManager mLayoutManager = new LinearLayoutManager(EmployeeSelect.this);
         mListView.setLayoutManager(mLayoutManager);
         final ProgressDialog pd = new ProgressDialog(EmployeeSelect.this);
