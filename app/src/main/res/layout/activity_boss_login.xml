@@ -35,6 +35,7 @@
             android:maxLines="1"
             android:textAppearance="@style/Base.TextAppearance.AppCompat.Subhead"
             android:id="@+id/etPassword"
+            android:inputType="textPassword"
             android:padding="10dp"
             android:layout_marginBottom="5dp"
             android:background="@drawable/login_box"/>

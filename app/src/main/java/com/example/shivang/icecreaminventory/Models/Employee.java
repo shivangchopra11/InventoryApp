@@ -10,15 +10,25 @@ import java.util.Map;
 public class Employee {
     String name;
     int qty;
+    String pass;
     Map<String,Object> items;
 
     public Employee() {
     }
 
-    public Employee(String name, int qty) {
+    public Employee(String name, int qty,String pass) {
         this.name = name;
         this.qty = qty;
+        this.pass = pass;
         items = new HashMap<>();
+    }
+
+    public String getPass() {
+        return pass;
+    }
+
+    public void setPass(String pass) {
+        this.pass = pass;
     }
 
     public String getName() {

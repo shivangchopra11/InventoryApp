@@ -26,6 +26,7 @@ import android.view.View;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.ImageView;
+import android.widget.Toast;
 
 import com.example.shivang.icecreaminventory.Models.Flavour;
 import com.example.shivang.icecreaminventory.Models.Item;
@@ -85,7 +86,7 @@ public class ItemSubTypes extends AppCompatActivity {
         mListView = findViewById(R.id.rvFlavours);
         mDatabase = FirebaseDatabase.getInstance().getReference();
         Log.v("EMP",empName);
-        mAdapter = new FlavourAdapter(mFlavourList,ItemSubTypes.this,mDatabase,mName,mStorage,empName);
+        mAdapter = new FlavourAdapter(mFlavourList,ItemSubTypes.this,mDatabase,mName,mStorage,empName,mCode);
         DisplayMetrics displayMetrics = this.getResources().getDisplayMetrics();
         float dpHeight = displayMetrics.heightPixels / displayMetrics.density;
         float dpWidth = displayMetrics.widthPixels / displayMetrics.density;
@@ -219,6 +220,7 @@ public class ItemSubTypes extends AppCompatActivity {
                     pd.dismiss();
                     Flavour flavour = new Flavour(name,desc);
                     mDatabase.child("items").child(mName).child("flavours").child(name).setValue(flavour);
+                    Toast.makeText(ItemSubTypes.this, "Flavour Added", Toast.LENGTH_LONG).show();
                 }
             });
         }

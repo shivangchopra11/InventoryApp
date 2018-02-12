@@ -325,6 +325,7 @@ public class MainActivity extends AppCompatActivity {
                     pd.dismiss();
                     Item item = new Item(name,desc);
                     mDatabase.child("items").child(name).setValue(item);
+                    Toast.makeText(MainActivity.this, "Item Added", Toast.LENGTH_LONG).show();
                 }
             });
         }
@@ -359,15 +360,17 @@ public class MainActivity extends AppCompatActivity {
                 final AlertDialog.Builder builder = new AlertDialog.Builder(MainActivity.this);
                 builder.setView(alertLayout);
                 final EditText etEmpName = alertLayout.findViewById(R.id.etEmpName);
+                final EditText etEmpPass = alertLayout.findViewById(R.id.etEmpPass);
                 Button btnAddEmp = alertLayout.findViewById(R.id.empDone);
                 final AlertDialog dialog = builder.create();
                 btnAddEmp.setOnClickListener(new View.OnClickListener() {
                     @Override
                     public void onClick(View v) {
                         String empName = etEmpName.getText().toString();
+                        String empPass = etEmpPass.getText().toString();
                         if(!empName.equals("")) {
                             final ProgressDialog pd = new ProgressDialog(MainActivity.this);
-                            Employee employee = new Employee(empName,0);
+                            Employee employee = new Employee(empName,0,empPass);
                             mDatabase.child("employees").child(empName).setValue(employee).addOnSuccessListener(new OnSuccessListener<Void>() {
                                 @Override
                                 public void onSuccess(Void aVoid) {

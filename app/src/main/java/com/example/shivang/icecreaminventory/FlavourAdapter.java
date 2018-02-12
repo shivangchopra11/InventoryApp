@@ -1,6 +1,8 @@
 package com.example.shivang.icecreaminventory;
 
+import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -29,6 +31,7 @@ import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.database.ValueEventListener;
 import com.google.firebase.storage.FileDownloadTask;
@@ -52,16 +55,19 @@ public class FlavourAdapter extends RecyclerView.Adapter<FlavourAdapter.MyViewHo
     private StorageReference mStorage;
     private String itemName;
     private String empName;
+    private int mCode;
+    int mCur = 0;
     public static final HashMap<String,SoftReference<Bitmap>> flavourCache =
             new HashMap<String,SoftReference<Bitmap>>();
 
-    public FlavourAdapter(List<Flavour> flavours, final Context mContext, DatabaseReference ref,String name,StorageReference reference,String empName) {
+    public FlavourAdapter(List<Flavour> flavours, final Context mContext, DatabaseReference ref,String name,StorageReference reference,String empName,int mCode) {
         mFlavours = flavours;
         this.mContext = mContext;
         this.mDatabase=ref;
         this.mStorage = reference;
         itemName = name;
         this.empName = empName;
+        this.mCode = mCode;
 
 
 
@@ -151,6 +157,46 @@ public class FlavourAdapter extends RecyclerView.Adapter<FlavourAdapter.MyViewHo
                 }
             });
 
+
+            itemView.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+
+                    if(mCode==0) {
+                        final AlertDialog alertDialog = new AlertDialog.Builder(
+                                mContext).create();
+
+                        // Setting Dialog Title
+                        alertDialog.setTitle("Delete Flavour");
+
+                        // Setting Dialog Message
+                        alertDialog.setMessage("Do you want to delete this flavour");
+
+
+                        // Setting OK Button
+                        alertDialog.setButton(AlertDialog.BUTTON_POSITIVE,"OK", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                // Write your code here to execute after dialog closed
+                                final DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
+                                final String name = mFlavours.get(getLayoutPosition()).getFlName();
+                                mDatabase.child("items").child(itemName).child("flavours").child(name).setValue(null);
+                            }
+                        });
+                        alertDialog.setButton(AlertDialog.BUTTON_NEGATIVE, "CANCEL", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                alertDialog.dismiss();
+                            }
+                        });
+
+                        // Showing Alert Message
+                        alertDialog.show();
+                    }
+
+                    return true;
+                }
+            });
+
             itemView.setOnClickListener(new View.OnClickListener() {
                 @Override
                 public void onClick(View v) {
@@ -159,6 +205,22 @@ public class FlavourAdapter extends RecyclerView.Adapter<FlavourAdapter.MyViewHo
 //                    mContext.startActivity(i);
                     final int pos = getLayoutPosition();
                     final String name = mFlavours.get(pos).getFlName();
+                    LayoutInflater inflater = LayoutInflater.from(mContext);
+                    View alertLayout = inflater.inflate(R.layout.activity_change_qty, null);
+                    final AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
+                    builder.setView(alertLayout);
+                    final TextView tvQty = alertLayout.findViewById(R.id.tvQty);
+                    Button addQty = alertLayout.findViewById(R.id.addQty);
+                    Button subQty = alertLayout.findViewById(R.id.subQty);
+                    final AlertDialog dialog = builder.create();
+
+                    final ProgressDialog pd = new ProgressDialog(mContext);
+                    pd.setTitle("Recieving Data");
+                    pd.setMessage("Please wait, data is being recieved");
+                    pd.setCancelable(false);
+                    pd.setIndeterminate(true);
+                    dialog.show();
+                    pd.show();
                     if(!empName.equals("")) {
                         Query myEmpQuery1 = mDatabase.child("employees").child(empName).child("items").child(itemName).child(name).child("flQty");
                         myEmpQuery1.addValueEventListener(new ValueEventListener() {
@@ -168,24 +230,23 @@ public class FlavourAdapter extends RecyclerView.Adapter<FlavourAdapter.MyViewHo
                                     curctr = dataSnapshot.getValue(Integer.class);
                                 else
                                     curctr=0;
+                                Log.d(TAG, "onDataChange:"+curctr);
+                                tvQty.setText(curctr+"");
+                                pd.dismiss();
                             }
 
                             @Override
                             public void onCancelled(DatabaseError databaseError) {
                                 Log.w(TAG, "loadItem:onCancelled", databaseError.toException());
                             }
+
                         });
                     }
-                    LayoutInflater inflater = LayoutInflater.from(mContext);
-                    View alertLayout = inflater.inflate(R.layout.activity_change_qty, null);
-                    final AlertDialog.Builder builder = new AlertDialog.Builder(mContext);
-                    builder.setView(alertLayout);
-                    final TextView tvQty = alertLayout.findViewById(R.id.tvQty);
-                    tvQty.setText(mFlavours.get(pos).getFlQty()+"");
-                    Button addQty = alertLayout.findViewById(R.id.addQty);
-                    Button subQty = alertLayout.findViewById(R.id.subQty);
-                    final AlertDialog dialog = builder.create();
                     Button btnSubQty = alertLayout.findViewById(R.id.btnSubQty);
+                    if(empName.equals("")) {
+                        pd.dismiss();
+                        tvQty.setText(mFlavours.get(pos).getFlQty()+"");
+                    }
 
                     addQty.setOnClickListener(new View.OnClickListener() {
                         @Override
@@ -196,6 +257,7 @@ public class FlavourAdapter extends RecyclerView.Adapter<FlavourAdapter.MyViewHo
                             tvQty.setText(qt+"");
                             ctr++;
                             curctr++;
+                            mCur++;
                         }
                     });
                     subQty.setOnClickListener(new View.OnClickListener() {
@@ -208,6 +270,7 @@ public class FlavourAdapter extends RecyclerView.Adapter<FlavourAdapter.MyViewHo
                             tvQty.setText(qt+"");
                             ctr--;
                             curctr--;
+                            mCur--;
                         }
                     });
                     btnSubQty.setOnClickListener(new View.OnClickListener() {
@@ -215,15 +278,18 @@ public class FlavourAdapter extends RecyclerView.Adapter<FlavourAdapter.MyViewHo
                         public void onClick(View v) {
                             String qty = tvQty.getText().toString();
                             int qt = Integer.parseInt(qty);
-                            mDatabase.child("items").child(itemName).child("flavours").child(name).child("flQty").setValue(qt);
-                            if(!empName.equals("")) {
+                            if(empName.equals(""))
+                                mDatabase.child("items").child(itemName).child("flavours").child(name).child("flQty").setValue(qt);
+                            else {
+                                mDatabase.child("items").child(itemName).child("flavours").child(name).child("flQty").setValue(mFlavours.get(pos).getFlQty()+mCur);
                                 mDatabase.child("employees").child(empName).child("qty").setValue(ctr);
                                 mDatabase.child("employees").child(empName).child("items").child(itemName).child(name).child("flQty").setValue(curctr);
                             }
                             dialog.dismiss();
                         }
                     });
-                    dialog.show();
+
+
 
                 }
             });

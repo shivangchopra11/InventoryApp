@@ -28,13 +28,13 @@
                 android:textColor="@android:color/background_light"/>
                 <TextView
                     android:layout_width="match_parent"
-                    android:layout_height="30dp"
+                    android:layout_height="wrap_content"
                     android:gravity="center"
                     android:id="@+id/tvName"
                     android:textAppearance="@style/Base.TextAppearance.AppCompat.Subhead"/>
                 <TextView
                     android:layout_width="match_parent"
-                    android:layout_height="30dp"
+                    android:layout_height="wrap_content"
                     android:gravity="center"
                     android:id="@+id/tvDesc"
                     android:textAppearance="@style/Base.TextAppearance.AppCompat.Subhead"/>

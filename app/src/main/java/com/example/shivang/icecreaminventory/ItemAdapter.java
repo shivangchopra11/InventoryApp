@@ -1,6 +1,7 @@
 package com.example.shivang.icecreaminventory;
 
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
@@ -24,6 +25,7 @@ import com.google.firebase.database.ChildEventListener;
 import com.google.firebase.database.DataSnapshot;
 import com.google.firebase.database.DatabaseError;
 import com.google.firebase.database.DatabaseReference;
+import com.google.firebase.database.FirebaseDatabase;
 import com.google.firebase.database.Query;
 import com.google.firebase.storage.FileDownloadTask;
 import com.google.firebase.storage.StorageReference;
@@ -141,6 +143,50 @@ public class ItemAdapter extends RecyclerView.Adapter<ItemAdapter.MyViewHolder> 
                     i.putExtra("code",mCode);
                     i.putExtra("empName",empName);
                     mContext.startActivity(i);
+                }
+            });
+            itemView.setOnLongClickListener(new View.OnLongClickListener() {
+                @Override
+                public boolean onLongClick(View v) {
+
+                    if(mCode==0) {
+                        final AlertDialog alertDialog = new AlertDialog.Builder(
+                                mContext).create();
+
+                        // Setting Dialog Title
+                        alertDialog.setTitle("Delete Item");
+
+                        // Setting Dialog Message
+                        alertDialog.setMessage("Do you want to delete this item");
+
+
+                        // Setting OK Button
+                        alertDialog.setButton(AlertDialog.BUTTON_POSITIVE,"OK", new DialogInterface.OnClickListener() {
+                            public void onClick(DialogInterface dialog, int which) {
+                                // Write your code here to execute after dialog closed
+                                final DatabaseReference mDatabase = FirebaseDatabase.getInstance().getReference();
+                                mDatabase.child("items").child(mItems.get(getLayoutPosition()).getName()).setValue(null);
+                                StorageReference filePath = mStorage.child("images").child(mItems.get(getLayoutPosition()).getName());
+                                filePath.delete().addOnSuccessListener(new OnSuccessListener<Void>() {
+                                    @Override
+                                    public void onSuccess(Void aVoid) {
+                                        alertDialog.dismiss();
+                                    }
+                                });
+                            }
+                        });
+                        alertDialog.setButton(AlertDialog.BUTTON_NEGATIVE, "CANCEL", new DialogInterface.OnClickListener() {
+                            @Override
+                            public void onClick(DialogInterface dialog, int which) {
+                                alertDialog.dismiss();
+                            }
+                        });
+
+                        // Showing Alert Message
+                        alertDialog.show();
+                    }
+
+                    return true;
                 }
             });
 

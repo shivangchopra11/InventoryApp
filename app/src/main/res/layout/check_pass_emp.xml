@@ -11,24 +11,14 @@
         <TextView
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="Add Employee"
+            android:text="Enter Password"
             android:layout_marginTop="10dp"
             android:textAppearance="@style/Base.TextAppearance.AppCompat.Headline"
             android:gravity="center"/>
-
         <EditText
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:id="@+id/etEmpName"
-            android:gravity="center"
-            android:layout_weight="1"
-            android:hint="Enter Employee Name"
-            android:layout_marginTop="10dp"
-            android:textAppearance="@style/Base.TextAppearance.AppCompat.Headline"/>
-        <EditText
-            android:layout_width="match_parent"
-            android:layout_height="wrap_content"
-            android:id="@+id/etEmpPass"
+            android:id="@+id/etEmpPass1"
             android:gravity="center"
             android:layout_weight="1"
             android:hint="Enter Employee Password"
@@ -42,8 +32,8 @@
             android:gravity="center"
             android:background="@color/colorPrimary"
             android:textColor="@android:color/background_light"
-            android:text="DONE"
-            android:id="@+id/empDone"
+            android:text="SUBMIT"
+            android:id="@+id/empDone1"
             android:layout_marginTop="10dp"
             android:textAppearance="@style/Base.TextAppearance.AppCompat.Headline"/>
     </LinearLayout>
