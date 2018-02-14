@@ -6,10 +6,12 @@ import android.app.PendingIntent;
 import android.app.ProgressDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
+import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -104,9 +106,9 @@ public class MainActivity extends AppCompatActivity {
 
 
 
-        Intent intent = new Intent("someIntent");
-        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 1111, intent, 0);
-        AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
+//        Intent intent = new Intent("someIntent");
+//        PendingIntent pendingIntent = PendingIntent.getBroadcast(this, 1111, intent, 0);
+//        AlarmManager alarmManager = (AlarmManager) getSystemService(ALARM_SERVICE);
 //        Calendar calendar = Calendar.getInstance();
 //        calendar.setTimeInMillis(System.currentTimeMillis());
 //        calendar.set(Calendar.HOUR_OF_DAY, 12);
@@ -114,7 +116,7 @@ public class MainActivity extends AppCompatActivity {
 //        alarmManager.setInexactRepeating(AlarmManager.ELAPSED_REALTIME, SystemClock.elapsedRealtime()+6*1000,
 //                60*1000, pendingIntent);
 
-            alarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + (10*1000), pendingIntent);
+//            alarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis() + (10*1000), pendingIntent);
 
 
 
@@ -227,10 +229,7 @@ public class MainActivity extends AppCompatActivity {
                         File dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM);
                         ctr++;
                         output=new File(dir, ctr+".jpeg");
-                        Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
-                        cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(output));
-//                        dialog.dismiss();
-                        startActivityForResult(cameraIntent, CAMERA_REQUEST);
+                        showPictureDialog();
 
                     }
                 });
@@ -242,11 +241,91 @@ public class MainActivity extends AppCompatActivity {
 
     }
 
+    private int GALLERY = 1, CAMERA = 2;
 
-    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
 
-        Log.v(TAG+"1",requestCode+"");
-        if (requestCode == CAMERA_REQUEST && resultCode == Activity.RESULT_OK) {
+    private void showPictureDialog(){
+        AlertDialog.Builder pictureDialog = new AlertDialog.Builder(this);
+        pictureDialog.setTitle("Select Action");
+        String[] pictureDialogItems = {
+                "Select photo from gallery",
+                "Capture photo from camera" };
+        pictureDialog.setItems(pictureDialogItems,
+                new DialogInterface.OnClickListener() {
+                    @Override
+                    public void onClick(DialogInterface dialog, int which) {
+                        switch (which) {
+                            case 0:
+                                choosePhotoFromGallary();
+                                break;
+                            case 1:
+                                takePhotoFromCamera();
+                                break;
+                        }
+                    }
+                });
+        pictureDialog.show();
+    }
+
+    public void choosePhotoFromGallary() {
+        Intent galleryIntent = new Intent(Intent.ACTION_PICK,
+                android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
+        galleryIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(output));
+        startActivityForResult(galleryIntent, GALLERY);
+    }
+
+    private void takePhotoFromCamera() {
+        Intent cameraIntent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+        cameraIntent.putExtra(MediaStore.EXTRA_OUTPUT, Uri.fromFile(output));
+//                        dialog.dismiss();
+        startActivityForResult(cameraIntent, CAMERA);
+    }
+
+    @Override
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
+
+        super.onActivityResult(requestCode, resultCode, data);
+        if (resultCode == this.RESULT_CANCELED) {
+            return;
+        }
+        if (requestCode == GALLERY) {
+            if (data != null) {
+                Uri contentURI = data.getData();
+                try {
+                    Bitmap bitmap = MediaStore.Images.Media.getBitmap(this.getContentResolver(), contentURI);
+                    ByteArrayOutputStream bytes = new ByteArrayOutputStream();
+                    bitmap.compress(Bitmap.CompressFormat.JPEG, 90, bytes);
+                    FileOutputStream fo = new FileOutputStream(output);
+                    fo.write(bytes.toByteArray());
+                    MediaScannerConnection.scanFile(this,
+                            new String[]{output.getPath()},
+                            new String[]{"image/jpeg"}, null);
+                    fo.close();
+                    File dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM);
+                    output1=new File(dir, ctr+"s.jpeg");
+                    try {
+                        output1 = new Compressor(this).compressToFile(output);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    Bitmap photo = null;
+                    try {
+                        photo = new Compressor(this).compressToBitmap(output1);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    curPic=photo;
+                    curUri = Uri.fromFile(output1);
+                    curPicView.setImageBitmap(photo);
+                    clickItem.setVisibility(View.GONE);
+                } catch (IOException e) {
+                    e.printStackTrace();
+                    Toast.makeText(MainActivity.this, "Failed!", Toast.LENGTH_SHORT).show();
+                }
+
+            }
+
+        } else if (requestCode == CAMERA) {
             File dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM);
             output1=new File(dir, ctr+"s.jpeg");
             try {
@@ -268,8 +347,37 @@ public class MainActivity extends AppCompatActivity {
             clickItem.setVisibility(View.GONE);
             Log.v(TAG,curUri.toString());
         }
-
     }
+
+
+
+//    protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+//
+//        Log.v(TAG+"1",requestCode+"");
+//        if (requestCode == CAMERA_REQUEST && resultCode == Activity.RESULT_OK) {
+//            File dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DCIM);
+//            output1=new File(dir, ctr+"s.jpeg");
+//            try {
+//                output1 = new Compressor(this).compressToFile(output);
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+////            Bitmap photo = BitmapFactory.decodeFile(output1.getAbsolutePath());
+//            Bitmap photo = null;
+//            try {
+//                photo = new Compressor(this).compressToBitmap(output1);
+//            } catch (IOException e) {
+//                e.printStackTrace();
+//            }
+////            curUri = data.getData();
+//            curPic=photo;
+//            curUri = Uri.fromFile(output1);
+//            curPicView.setImageBitmap(photo);
+//            clickItem.setVisibility(View.GONE);
+//            Log.v(TAG,curUri.toString());
+//        }
+//
+//    }
 
 
     @Override
